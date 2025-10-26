@@ -11,3 +11,7 @@ def parse_bus_dt(dt):
 def minutes_until(dt):
     now = datetime.now()
     return math.floor((dt - now).total_seconds() / 60)
+
+def current_time_string():
+    now = datetime.now()
+    return now.strftime("%H:%M:%S")

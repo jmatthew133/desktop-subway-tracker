@@ -2,10 +2,17 @@ from nyct_gtfs import NYCTFeed
 from time_util import minutes_until
 
 def print_train_times(upcoming_arrivals, line, stop_name):
-    print(f"The next southbound {line} trains from {stop_name} are:")
+    output_list = []
+    header_string = f"The next southbound {line} trains from {stop_name} are:"
+    print(header_string)
+    output_list.append(header_string)
     for a in upcoming_arrivals:
         at = a["arrival_dt"].astimezone().strftime("%H:%M")
-        print(f"  {a['mins_away']:>3} min @ {at}")
+        time_string = f"  {a['mins_away']:>3} min @ {at}"
+        print(time_string)
+        output_list.append(time_string)
+    output_list.append("")
+    return output_list    
     
 
 def get_next_trains(line: str, stop_id: str, limit: int = 3):
