@@ -6,14 +6,13 @@ URL = "https://api.open-meteo.com/v1/forecast"
 
 def print_weather(forecast):
     output_list = []
-    header_string = f"Current: "
+    header_string = f"Current: {weather['current']['desc']}, {weather['current']['temp']}°F (feels {weather['current']['feels_like']}°F)"
     print(header_string)
     output_list.append(header_string)
-    for a in upcoming_arrivals:
-        at = a["arrival_dt"].astimezone().strftime("%H:%M")
-        time_string = f"  {a['mins_away']:>3} min @ {at}"
-        print(time_string)
-        output_list.append(time_string)
+    for d in forecast['forecast']:
+        day_string = f"{d['day']}: {d['desc']} — {d['high']}° / {d['low']}°"
+        print(day_string)
+        output_list.append(day_string)
     output_list.append("")
     return output_list
 
