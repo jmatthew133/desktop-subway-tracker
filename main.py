@@ -1,5 +1,6 @@
 import time
-from display import init_display, draw_lines, clear_and_sleep
+import traceback
+from display import init_display, clear_and_sleep, draw_weather_and_transit_lines
 from time_util import current_time_string
 from subway import get_next_trains, print_train_times
 from bus import get_next_buses, print_bus_times
@@ -26,37 +27,35 @@ def main():
     try: 
         while True:
             # Subway Times
-            lines = []
+            transit_lines = []
             
             upcoming_q_trains = get_next_trains(Q_LINE, Q_STOP, 3)
             q_times = print_train_times(upcoming_q_trains, Q_LINE, Q_STOP_NAME)
-            lines += q_times
+            transit_lines += q_times
             
             upcoming_6_trains = get_next_trains(SIX_LINE, SIX_STOP, 3)
             six_times = print_train_times(upcoming_6_trains, SIX_LINE, SIX_STOP_NAME)
-            lines += six_times
+            transit_lines += six_times
             
             upcoming_m31_buses = get_next_buses(M31_STOP_ID, 3)
             bus_times = print_bus_times(upcoming_m31_buses, M31_LINE, M31_STOP_NAME)
-            lines += bus_times
+            transit_lines += bus_times
             
             print()
             
             # Weather
-            forecast = get_weather()
-            weather_lines = print_weather(forecast)
-            lines += weather_lines
+            weather_lines = []
+            
+            weather_data = get_weather()
+            forecast = print_weather(weather_data)
+            weather_lines += forecast
             
             print()
             
-            # Last Updated
-            current_time = current_time_string()
-            lines.append("")
-            lines.append("Last updated at: " + current_time)
-            
-            draw_lines(epd, lines)
+            # Main draw function
+            draw_weather_and_transit_lines(epd, weather_lines, transit_lines)
                 
-            print("Refresh cycle complete! " + current_time)   
+            print("Refresh cycle complete! " + current_time_string())   
             print("_____________________")
             print()
             
@@ -67,6 +66,7 @@ def main():
     except Exception as e:
         print("Encountered error during execution")
         print(f"Error: {e}")
+        traceback.print_exc()
     finally:
         clear_and_sleep(epd)
             
