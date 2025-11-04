@@ -17,7 +17,8 @@ def get_weather():
     resp = requests.get(URL, params = params, timeout = 10)
     resp.raise_for_status()
     js = resp.json()
-    
+
+    # Parse current day's weather
     current_raw = js.get("current", {})
     current = {
         "temp": round(current_raw.get("tamperature_2m", 0)),
@@ -26,9 +27,44 @@ def get_weather():
         "desc": WEATHER_CODES.get(current_raw.get("weather_code", 0), "Unknown")
     }
     
-    
-    print(current)
-        
+    # Parse 3-day forecast (excluding today)
+    daily = data.get("daily", {})
+    days = daily.get("time", [])[1:4]
+    highs = daily.get("temperature_2m_max", [])[1:4]
+    lows = daily.get("temperature_2m_min", [])[1:4]
+    codes = daily.get("weather_code", [])[1:4]
+
+    forecast = []
+    for day, high, low, code in zip(days, highs, lows, codes):
+        dt = datetime.fromisoformat(day)
+        forecast.append({
+            "day": dt.strftime("%a"),
+            "high": round(high),
+            "low": round(low),
+            "code": code,
+            "desc": WEATHER_CODES.get(code, "Unknown"),
+        })
+
+    print({"current": current, "forecast": forecast})
+
+
+# Weather code map (Open-Meteo standard)
 WEATHER_CODES = {
-    0: "Clear Sky"
+    0: "Clear sky ☀️",
+    1: "Mainly clear 🌤️",
+    2: "Partly cloudy ⛅",
+    3: "Overcast ☁️",
+    45: "Fog 🌫️",
+    48: "Rime fog 🌫️",
+    51: "Light drizzle 🌦️",
+    53: "Moderate drizzle 🌧️",
+    55: "Dense drizzle 🌧️",
+    61: "Slight rain 🌦️",
+    63: "Moderate rain 🌧️",
+    65: "Heavy rain 🌧️",
+    71: "Slight snow 🌨️",
+    73: "Moderate snow 🌨️",
+    75: "Heavy snow 🌨️",
+    95: "Thunderstorm ⛈️",
+    99: "Hail ⛈️",
 }
