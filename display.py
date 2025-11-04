@@ -2,11 +2,10 @@ from waveshare_epd import epd7in5_V2 as epd7in5
 import RPi.GPIO as GPIO
 from PIL import Image, ImageDraw, ImageFont
 
-WIDTH = 800
-HEIGHT = 480
+WIDTH, HEIGHT = 800, 480
 
-FONT_PATH = "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf"
-FONT_SIZE = 13
+FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+FONT_SIZE = 17
 
 def init_display():
     epd = epd7in5.EPD()

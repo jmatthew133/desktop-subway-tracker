@@ -7,15 +7,15 @@ from weather import get_weather, print_weather
 
 Q_STOP = "Q03S" # 72nd St Q Southbound
 Q_LINE = "Q"
-Q_STOP_NAME = "72nd St"
+Q_STOP_NAME = "72 St"
 
 SIX_STOP = "627S" # 77th St 6 Southbound
 SIX_LINE = "6"
-SIX_STOP_NAME = "77th St"
+SIX_STOP_NAME = "77 St"
 
-M31_STOP_ID = "402349" # York Av/E 77 ST
+M31_STOP_ID = "402349" # York Av/E 77 St
 M31_LINE = "M31"
-M31_STOP_NAME = "77th St/York Ave"
+M31_STOP_NAME = "York Av/E 77 St"
 
 REFRESH_INTERVAL = 30 # seconds
 
@@ -28,15 +28,15 @@ def main():
             # Subway Times
             lines = []
             
-            upcoming_q_trains = get_next_trains(Q_LINE, Q_STOP, 4)
+            upcoming_q_trains = get_next_trains(Q_LINE, Q_STOP, 3)
             q_times = print_train_times(upcoming_q_trains, Q_LINE, Q_STOP_NAME)
             lines += q_times
             
-            upcoming_6_trains = get_next_trains(SIX_LINE, SIX_STOP, 4)
+            upcoming_6_trains = get_next_trains(SIX_LINE, SIX_STOP, 3)
             six_times = print_train_times(upcoming_6_trains, SIX_LINE, SIX_STOP_NAME)
             lines += six_times
             
-            upcoming_m31_buses = get_next_buses(M31_STOP_ID, 4)
+            upcoming_m31_buses = get_next_buses(M31_STOP_ID, 3)
             bus_times = print_bus_times(upcoming_m31_buses, M31_LINE, M31_STOP_NAME)
             lines += bus_times
             

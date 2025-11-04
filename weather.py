@@ -13,7 +13,6 @@ def print_weather(forecast):
         day_string = f"{d['day']}: {d['desc']} — {d['high']}° / {d['low']}°"
         print(day_string)
         output_list.append(day_string)
-    output_list.append("")
     return output_list
 
 def get_weather():
@@ -34,7 +33,7 @@ def get_weather():
     # Parse current day's weather
     current_raw = js.get("current", {})
     current = {
-        "temp": round(current_raw.get("tamperature_2m", 0)),
+        "temp": round(current_raw.get("temperature_2m", 0)),
         "feels_like": round(current_raw.get("apparent_temperature", 0)),
         "code": current_raw.get("weather_code", 0),
         "desc": WEATHER_CODES.get(current_raw.get("weather_code", 0), "Unknown")

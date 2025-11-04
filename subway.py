@@ -3,7 +3,7 @@ from time_util import minutes_until
 
 def print_train_times(upcoming_arrivals, line, stop_name):
     output_list = []
-    header_string = f"The next southbound {line} trains from {stop_name} are:"
+    header_string = f"Southbound {line} trains from {stop_name}:"
     print(header_string)
     output_list.append(header_string)
     for a in upcoming_arrivals:
@@ -12,7 +12,7 @@ def print_train_times(upcoming_arrivals, line, stop_name):
         print(time_string)
         output_list.append(time_string)
     output_list.append("")
-    return output_list    
+    return output_list
     
 
 def get_next_trains(line: str, stop_id: str, limit: int = 3):

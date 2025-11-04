@@ -6,7 +6,7 @@ URL = "https://bustime.mta.info/api/siri/stop-monitoring.json"
 
 def print_bus_times(upcoming_arrivals, line, stop_name):
     output_list = []
-    header_string = f"The next southbound {line} buses from {stop_name} are:"
+    header_string = f"Southbound {line} buses from {stop_name}:"
     print(header_string)
     output_list.append(header_string)
     for a in upcoming_arrivals:
