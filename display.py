@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 WIDTH = 800
 HEIGHT = 480
 
-FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+FONT_PATH = "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf"
 FONT_SIZE = 16
 
 def init_display():

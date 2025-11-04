@@ -1,7 +1,21 @@
 import requests
+from datetime import datetime
 from local_config import LAT, LONG # Lat and Long are in a local file that is gitignored
 
 URL = "https://api.open-meteo.com/v1/forecast"
+
+def print_weather(forecast):
+    output_list = []
+    header_string = f"Current: "
+    print(header_string)
+    output_list.append(header_string)
+    for a in upcoming_arrivals:
+        at = a["arrival_dt"].astimezone().strftime("%H:%M")
+        time_string = f"  {a['mins_away']:>3} min @ {at}"
+        print(time_string)
+        output_list.append(time_string)
+    output_list.append("")
+    return output_list
 
 def get_weather():
     params = {
@@ -28,7 +42,7 @@ def get_weather():
     }
     
     # Parse 3-day forecast (excluding today)
-    daily = data.get("daily", {})
+    daily = js.get("daily", {})
     days = daily.get("time", [])[1:4]
     highs = daily.get("temperature_2m_max", [])[1:4]
     lows = daily.get("temperature_2m_min", [])[1:4]
@@ -45,7 +59,7 @@ def get_weather():
             "desc": WEATHER_CODES.get(code, "Unknown"),
         })
 
-    print({"current": current, "forecast": forecast})
+    return {"current": current, "forecast": forecast}
 
 
 # Weather code map (Open-Meteo standard)
