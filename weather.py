@@ -6,7 +6,7 @@ URL = "https://api.open-meteo.com/v1/forecast"
 
 def print_weather(forecast):
     output_list = []
-    header_string = f"Current: {forecast['current']['desc']}, {forecast['current']['temp']}°F (feels {forecast['current']['feels_like']}°F)"
+    header_string = f"Today: {forecast['current']['desc']}, {forecast['current']['temp']}°F (feels {forecast['current']['feels_like']}°F)"
     print(header_string)
     output_list.append(header_string)
     for d in forecast['forecast']:

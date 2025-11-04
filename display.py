@@ -3,6 +3,7 @@ import RPi.GPIO as GPIO
 from PIL import Image, ImageDraw, ImageFont
 
 WIDTH, HEIGHT = 800, 480
+MID = WIDTH / 2
 
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 FONT_SIZE = 17
