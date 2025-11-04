@@ -3,6 +3,7 @@ from display import init_display, draw_lines, clear_and_sleep
 from time_util import current_time_string
 from subway import get_next_trains, print_train_times
 from bus import get_next_buses, print_bus_times
+from weather import get_weather, print_weather
 
 Q_STOP = "Q03S" # 72nd St Q Southbound
 Q_LINE = "Q"
@@ -24,6 +25,7 @@ def main():
     
     try: 
         while True:
+            # Subway Times
             lines = []
             
             upcoming_q_trains = get_next_trains(Q_LINE, Q_STOP, 4)
@@ -40,6 +42,14 @@ def main():
             
             print()
             
+            # Weather
+            forecast = get_weather()
+            weather_lines = print_weather(forecast)
+            lines += weather_lines
+            
+            print()
+            
+            # Last Updated
             current_time = current_time_string()
             lines.append("")
             lines.append("Last updated at: " + current_time)

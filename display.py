@@ -6,7 +6,7 @@ WIDTH = 800
 HEIGHT = 480
 
 FONT_PATH = "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf"
-FONT_SIZE = 16
+FONT_SIZE = 13
 
 def init_display():
     epd = epd7in5.EPD()
