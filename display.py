@@ -152,28 +152,23 @@ def draw_right_half_only(epd, img, transit_lines):
 
 
 def draw_right_half_only_debug(epd, img, transit_lines, counter=0):
-    """Debug version: draw simple test pattern with counter to verify updates."""
+    """Debug version: test small region first to isolate stretching issue."""
     draw = ImageDraw.Draw(img)
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)
     font_m = ImageFont.truetype(FONT_PATH, FONT_M)
     
-    # Clear right half (white)
-    draw.rectangle([int(MID_X), 0, WIDTH, HEIGHT], fill=255)
+    # Clear a small region (100x100 at top right)
+    draw.rectangle([400, 0, 500, 100], fill=255)
     
-    # Center divider
-    draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
+    # Draw solid black rectangle in small region
+    draw.rectangle([410, 10, 490, 90], fill=0)
     
-    # SIMPLIFIED TEST: Just draw a solid black rectangle on right half
-    # If this displays full-height without stretching, rendering is the issue
-    # If this is stretched too, it's a driver/coordinate issue
-    draw.rectangle([int(MID_X) + 10, 10, WIDTH - 10, HEIGHT - 10], fill=0)
+    # Draw counter text on top
+    draw.text((420, 20), f"#{counter}", font=font_s, fill=255)  # white text on black
     
-    # Draw counter text on top of black box
-    draw.text((int(MID_X) + 32, 20), f"Update #{counter}", font=font_m, fill=255)  # white text on black
-    
-    # Partial refresh: right half only
+    # Partial refresh: SMALL region only (100x100 pixels)
     buf = epd.getbuffer(img)
-    epd.display_Partial(buf, int(MID_X), 0, WIDTH, HEIGHT)
+    epd.display_Partial(buf, 400, 0, 500, 100)
 
 
 def draw_left_half_only(epd, img, weather_lines, daily_fact=""):

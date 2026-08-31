@@ -46,7 +46,7 @@ def get_daily_fact():
     # Try cache first
     cached = _load_cached_fact()
     if cached:
-        print("[Fact] Using cached fact")
+        print("Using cached fact")
         return cached
     
     # Fetch from API
