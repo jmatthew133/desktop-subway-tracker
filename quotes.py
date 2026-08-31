@@ -60,11 +60,9 @@ def get_daily_fact():
         if isinstance(js, list) and len(js) > 0:
             js = js[0]
         
-        # Extract fact
         fact = js.get("text") or js.get("fact")
         
         if fact:
-            # Save to cache
             _save_fact_to_cache(fact)
             print("Fetched from API: " + fact)
             return fact
