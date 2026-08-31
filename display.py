@@ -151,8 +151,8 @@ def draw_right_half_only(epd, img, transit_lines):
     epd.display_Partial(buf, int(MID_X), 0, WIDTH, HEIGHT)
 
 
-def draw_right_half_only_debug(epd, img, transit_lines):
-    """Debug version: draw simple test pattern to verify coordinates."""
+def draw_right_half_only_debug(epd, img, transit_lines, counter=0):
+    """Debug version: draw simple test pattern with counter to verify updates."""
     draw = ImageDraw.Draw(img)
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)
     font_m = ImageFont.truetype(FONT_PATH, FONT_M)
@@ -163,17 +163,13 @@ def draw_right_half_only_debug(epd, img, transit_lines):
     # Center divider
     draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
     
-    # Draw horizontal test lines to check coordinate mapping
-    for y in range(0, HEIGHT, 50):
-        draw.line([(int(MID_X) + 10, y), (WIDTH - 10, y)], fill=0, width=2)
+    # SIMPLIFIED TEST: Just draw a solid black rectangle on right half
+    # If this displays full-height without stretching, rendering is the issue
+    # If this is stretched too, it's a driver/coordinate issue
+    draw.rectangle([int(MID_X) + 10, 10, WIDTH - 10, HEIGHT - 10], fill=0)
     
-    # Draw test text at known positions
-    draw.text((int(MID_X) + 32, 50), "TEST TOP", font=font_m, fill=0)
-    draw.text((int(MID_X) + 32, 150), "TEST MID", font=font_m, fill=0)
-    draw.text((int(MID_X) + 32, 250), "TEST BOT", font=font_m, fill=0)
-    
-    # Test footer
-    draw.text((WIDTH - 8, HEIGHT - 10), "TEST FOOTER", font=font_s, fill=0, anchor="rb")
+    # Draw counter text on top of black box
+    draw.text((int(MID_X) + 32, 20), f"Update #{counter}", font=font_m, fill=255)  # white text on black
     
     # Partial refresh: right half only
     buf = epd.getbuffer(img)

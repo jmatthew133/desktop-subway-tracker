@@ -61,10 +61,10 @@ def get_daily_fact():
         
         if fact:
             _save_fact_to_cache(fact)
-            print("[Fact] Fetched from API")
+            print("Fetched from API")
             return fact
     except Exception as e:
-        print(f"[Fact] Error fetching daily fact: {e}")
+        print(f"Error fetching daily fact: {e}")
     
     # Fallback if API fails
     print("[Fact] Using fallback message")

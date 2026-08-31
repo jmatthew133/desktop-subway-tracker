@@ -74,6 +74,7 @@ def main():
     last_transit_update_time = 0
     last_weather_update_time = 0
     first_run = True
+    transit_update_count = 0  # Counter to verify updates every 30s
     
     try:
         print("Starting tiered refresh display...")
@@ -85,27 +86,32 @@ def main():
             
             # Check if transit update is due (or first run)
             if first_run or (now - last_transit_update_time >= TRANSIT_REFRESH_INTERVAL):
-                print(f"[{time.strftime('%H:%M:%S')}] Updating transit...")
+                print(f"[{time.strftime('%H:%M:%S')}] Updating transit (#{transit_update_count + 1})...")
                 try:
                     transit_lines = fetch_transit_data()
                     if not first_run:
-                        draw_right_half_only_debug(epd, background, transit_lines)
+                        draw_right_half_only_debug(epd, background, transit_lines, counter=transit_update_count)
+                    transit_update_count += 1
                     last_transit_update_time = now
                     print(f"  ✓ Transit data fetched and displayed")
+                    print()
                 except Exception as e:
                     print(f"  ✗ Transit fetch failed: {e}")
+                    print()
             
             # Check if weather update is due (or first run)
             if first_run or (now - last_weather_update_time >= WEATHER_REFRESH_INTERVAL):
-                print(f"[{time.strftime('%H:%M:%S')}] Updating weather...")
+                print(f"[{time.strftime('%H:%M:%S')}] Updating weather and fact...")
                 try:
                     weather_lines, daily_fact = fetch_weather_data()
                     if not first_run:
                         draw_left_half_only(epd, background, weather_lines, daily_fact)
                     last_weather_update_time = now
-                    print(f"  ✓ Weather data fetched and displayed")
+                    print(f"  ✓ Weather + fact data fetched and displayed")
+                    print()
                 except Exception as e:
                     print(f"  ✗ Weather fetch failed: {e}")
+                    print()
             
             # Do a full render on first iteration
             if first_run:
