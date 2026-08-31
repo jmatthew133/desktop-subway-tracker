@@ -113,93 +113,87 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact
 
     epd.display(epd.getbuffer(img))
 
-def draw_right_half_only(epd, full_img, transit_lines):
+def draw_right_half_only(epd, img, transit_lines):
     """
     Update only the right half (transit info) with partial refresh.
-    Creates a cropped 400x480 image, renders transit content, then partial-updates display.
+    Renders into the full 800x480 image, then partial-updates just the right region.
     """
-    # Create a 400x480 image for the right half
-    right_img = Image.new("1", (400, 480), 255)  # white background
-    draw = ImageDraw.Draw(right_img)
-    
+    draw = ImageDraw.Draw(img)
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)
     font_m = ImageFont.truetype(FONT_PATH, FONT_M)
     
-    # Center divider (left edge of this cropped image)
-    draw.line([(0, 0), (0, 480)], fill=0, width=1)
+    # Clear right half (white)
+    draw.rectangle([int(MID_X), 0, WIDTH, HEIGHT], fill=255)
+    
+    # Center divider
+    draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
     
     # Right: Transit with logo
-    # Need to paste logo into the cropped image
-    if MTA_LOGO.exists():
-        logo = Image.open(MTA_LOGO).convert("RGBA")
-        alpha = logo.split()[-1]
-        mask = alpha.point(lambda a: 255 if a > 0 else 0)
-        # Logo x position: centered in the 400px right half, accounting for logo width
-        x = (400 - logo.width) // 2
-        right_img.paste(logo, (x, 8), mask)
-    
+    _paste_logo(img, top_y=8)
     right_pad = 32
     y = 8 + (Image.open(MTA_LOGO).height if MTA_LOGO.exists() else 60) + 10
 
     line_h = font_m.size + 6
     for line in transit_lines:
-        draw.text((right_pad, y), line, font=font_m, fill=0)
+        draw.text((MID_X + right_pad, y), line, font=font_m, fill=0)
         y += line_h
-        if y > 480 - (font_s.size + 14):
+        if y > HEIGHT - (font_s.size + 14):
             break
 
     # Bottom-right: Footer (last updated)
     stamp = current_date_time_string()
-    draw.text((400 - 8, 480 - 10), stamp, font=font_s, fill=0, anchor="rb")
+    draw.text((WIDTH - 8, HEIGHT - 10),
+              stamp, font=font_s, fill=0, anchor="rb")
     
-    # Get buffer from cropped image and partial refresh
-    buf = epd.getbuffer(right_img)
-    epd.display_Partial(buf, 400, 0, 800, 480)
+    # Partial refresh: right half only
+    # getbuffer needs full 800x480, display_Partial takes region coords
+    buf = epd.getbuffer(img)
+    epd.display_Partial(buf, int(MID_X), 0, WIDTH, HEIGHT)
 
 
-def draw_right_half_only_debug(epd, full_img, transit_lines):
+def draw_right_half_only_debug(epd, img, transit_lines):
     """Debug version: draw simple test pattern to verify coordinates."""
-    # Create a 400x480 image for the right half
-    right_img = Image.new("1", (400, 480), 255)
-    draw = ImageDraw.Draw(right_img)
-    
+    draw = ImageDraw.Draw(img)
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)
     font_m = ImageFont.truetype(FONT_PATH, FONT_M)
     
-    # Center divider (left edge)
-    draw.line([(0, 0), (0, 480)], fill=0, width=1)
+    # Clear right half (white)
+    draw.rectangle([int(MID_X), 0, WIDTH, HEIGHT], fill=255)
     
-    # Draw vertical test lines to check coordinate mapping
-    for y in range(0, 480, 50):
-        draw.line([(10, y), (390, y)], fill=0, width=2)
+    # Center divider
+    draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
+    
+    # Draw horizontal test lines to check coordinate mapping
+    for y in range(0, HEIGHT, 50):
+        draw.line([(int(MID_X) + 10, y), (WIDTH - 10, y)], fill=0, width=2)
     
     # Draw test text at known positions
-    draw.text((32, 50), "TEST TOP", font=font_m, fill=0)
-    draw.text((32, 150), "TEST MID", font=font_m, fill=0)
-    draw.text((32, 250), "TEST BOT", font=font_m, fill=0)
+    draw.text((int(MID_X) + 32, 50), "TEST TOP", font=font_m, fill=0)
+    draw.text((int(MID_X) + 32, 150), "TEST MID", font=font_m, fill=0)
+    draw.text((int(MID_X) + 32, 250), "TEST BOT", font=font_m, fill=0)
     
     # Test footer
-    draw.text((400 - 8, 480 - 10), "TEST FOOTER", font=font_s, fill=0, anchor="rb")
+    draw.text((WIDTH - 8, HEIGHT - 10), "TEST FOOTER", font=font_s, fill=0, anchor="rb")
     
-    # Get buffer from cropped image and partial refresh
-    buf = epd.getbuffer(right_img)
-    epd.display_Partial(buf, 400, 0, 800, 480)
+    # Partial refresh: right half only
+    buf = epd.getbuffer(img)
+    epd.display_Partial(buf, int(MID_X), 0, WIDTH, HEIGHT)
 
 
-def draw_left_half_only(epd, full_img, weather_lines, daily_fact=""):
+def draw_left_half_only(epd, img, weather_lines, daily_fact=""):
     """
     Update only the left half (weather + fact) with partial refresh.
-    Creates a cropped 400x480 image, renders weather content, then partial-updates display.
+    Renders into the full 800x480 image, then partial-updates just the left region.
     """
-    # Create a 400x480 image for the left half
-    left_img = Image.new("1", (400, 480), 255)  # white background
-    draw = ImageDraw.Draw(left_img)
-    
+    draw = ImageDraw.Draw(img)
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)
     font_m = ImageFont.truetype(FONT_PATH, FONT_M)
     
-    # Center divider (right edge of this cropped image)
-    draw.line([(400, 0), (400, 480)], fill=0, width=1)
+    # Clear left half (white)
+    draw.rectangle([0, 0, int(MID_X), HEIGHT], fill=255)
+    
+    # Center divider
+    draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
     
     # Left: Weather
     left_pad = 16
@@ -208,27 +202,27 @@ def draw_left_half_only(epd, full_img, weather_lines, daily_fact=""):
         f = font_m  # Use same font size for all weather lines
         draw.text((left_pad, y), line, font=f, fill=0)
         y += (f.size + 4)
-        if y > 480 - 80:  # Leave room for fact at bottom
+        if y > HEIGHT - 80:  # Leave room for fact at bottom
             break
     
     # Left: Daily fact (at bottom left)
     # Fact of the day header (bold with larger font)
-    header_y = 480 - 135
+    header_y = HEIGHT - 135
     draw.text((left_pad, header_y), "Fact of the day:", font=font_m, fill=0)
     
     fact_y = header_y + font_m.size + 6
     # Wrap fact text to fit left column width (max 5 lines)
-    left_col_width = 400 - left_pad * 2
+    left_col_width = int(MID_X - left_pad * 2)
     wrapped_fact = _wrap_text(daily_fact, font_s, left_col_width, max_lines=5)
     for line in wrapped_fact:
         draw.text((left_pad, fact_y), line, font=font_s, fill=0)
         fact_y += (font_s.size + 3)
-        if fact_y > 480 - 15:
+        if fact_y > HEIGHT - 15:
             break
     
-    # Get buffer from cropped image and partial refresh
-    buf = epd.getbuffer(left_img)
-    epd.display_Partial(buf, 0, 0, 400, 480)
+    # Partial refresh: left half only
+    buf = epd.getbuffer(img)
+    epd.display_Partial(buf, 0, 0, int(MID_X), HEIGHT)
 
 def draw_lines(epd, lines):
     print("attempting draw lines to screen:")

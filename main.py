@@ -112,6 +112,9 @@ def main():
                 print(f"[{time.strftime('%H:%M:%S')}] Initial full render...")
                 draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact)
                 print(f"  ✓ Display initialized")
+                # Switch to partial mode for subsequent updates
+                epd.init_part()
+                print(f"  ✓ Switched to partial refresh mode")
                 print()
                 first_run = False
             
