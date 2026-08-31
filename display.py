@@ -68,8 +68,8 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines):
 
     # Bottom-right: Footer (last updated)
     stamp = "Last updated: " + current_date_time_string()
-    draw.text((MID_X + 8, HEIGHT - (font_s.size + 8)),
-              stamp, font=font_s, fill=0)
+    draw.text((WIDTH - 8, HEIGHT - (font_s.size + 8)),
+              stamp, font=font_s, fill=0, anchor="rm")
 
     epd.display(epd.getbuffer(img))
 
