@@ -46,7 +46,7 @@ def get_daily_fact():
     # Try cache first
     cached = _load_cached_fact()
     if cached:
-        print("Using cached fact")
+        print("Using cached fact: " + cached)
         return cached
     
     # Fetch from API
@@ -66,7 +66,7 @@ def get_daily_fact():
         if fact:
             # Save to cache
             _save_fact_to_cache(fact)
-            print("Fetched from API")
+            print("Fetched from API: " + fact)
             return fact
     except Exception as e:
         print(f"[Fact] Error fetching daily fact: {e}")
