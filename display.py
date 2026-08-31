@@ -112,17 +112,13 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact
               stamp, font=font_s, fill=0, anchor="rb")
 
     # Partial refresh: split into left (0-400) and right (400-800) regions
-    # Extract left half (x: 0-400)
-    left_img = img.crop((0, 0, int(MID_X), HEIGHT))
-    left_buf = epd.getbuffer(left_img)
-    
-    # Extract right half (x: 400-800)
-    right_img = img.crop((int(MID_X), 0, WIDTH, HEIGHT))
-    right_buf = epd.getbuffer(right_img)
+    # Get buffer from full 800x480 image
+    buf = epd.getbuffer(img)
     
     # Display each region with partial refresh to minimize flashing
-    epd.display_Partial(left_buf, 0, 0, int(MID_X), HEIGHT)
-    epd.display_Partial(right_buf, int(MID_X), 0, WIDTH, HEIGHT)
+    # display_Partial expects full buffer and region coordinates
+    epd.display_Partial(buf, 0, 0, int(MID_X), HEIGHT)
+    epd.display_Partial(buf, int(MID_X), 0, WIDTH, HEIGHT)
 
 def draw_lines(epd, lines):
     print("attempting draw lines to screen:")
