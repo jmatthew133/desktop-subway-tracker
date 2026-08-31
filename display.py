@@ -80,14 +80,14 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact
             break
     
     # Left: Daily fact (at bottom left)
-    fact_y = HEIGHT - 50
+    fact_y = HEIGHT - 70
     # Wrap fact text to fit left column width (max 3 lines)
     left_col_width = int(MID_X - left_pad * 2)
     wrapped_fact = _wrap_text(daily_fact, font_s, left_col_width, max_lines=3)
     for line in wrapped_fact:
         draw.text((left_pad, fact_y), line, font=font_s, fill=0)
         fact_y += (font_s.size + 3)
-        if fact_y > HEIGHT - 4:
+        if fact_y > HEIGHT - 20:
             break
 
     # Right: Transit
@@ -104,8 +104,8 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact
 
     # Bottom-right: Footer (last updated)
     stamp = "Last updated: " + current_date_time_string()
-    draw.text((WIDTH - 8, HEIGHT - font_s.size - 20),
-              stamp, font=font_s, fill=0, anchor="rm")
+    draw.text((WIDTH - 8, HEIGHT - 10),
+              stamp, font=font_s, fill=0, anchor="rb")
 
     epd.display(epd.getbuffer(img))
 
