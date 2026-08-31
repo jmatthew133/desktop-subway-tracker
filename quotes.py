@@ -6,8 +6,7 @@ from pathlib import Path
 CACHE_DIR = Path(__file__).resolve().parent / "cache"
 CACHE_FILE = CACHE_DIR / "daily_fact.json"
 
-# API: uselessfacts.jsoup.com/random.json
-FACT_URL = "https://uselessfacts.jsoup.com/random.json"
+FACT_URL = "https://api.api-ninjas.com/v1/factoftheday"
 
 def _load_cached_fact():
     if not CACHE_FILE.exists():
@@ -47,14 +46,24 @@ def get_daily_fact():
     
     # Fetch from API
     try:
-        resp = requests.get(FACT_URL, timeout=5)
+        # Disable SSL verification for Raspberry Pi compatibility
+        resp = requests.get(FACT_URL, timeout=5, verify=False)
         resp.raise_for_status()
         js = resp.json()
-        fact = js.get("text", "No fact available")
         
-        # Save to cache
-        _save_fact_to_cache(fact)
-        return fact
+        # Handle array response (extract first element)
+        if isinstance(js, list) and len(js) > 0:
+            js = js[0]
+        
+        # Extract fact
+        fact = js.get("fact")
+        
+        if fact:
+            # Save to cache
+            _save_fact_to_cache(fact)
+            return fact
     except Exception as e:
         print(f"Error fetching daily fact: {e}")
-        return "Did you know? Interesting facts coming soon!"
+    
+    # Fallback if API fails
+    return "Did you know? Interesting facts coming soon!"

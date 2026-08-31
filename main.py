@@ -53,7 +53,6 @@ def main():
             
             print()
             
-            # Daily fact
             daily_fact = get_daily_fact()
             
             # Main draw function
