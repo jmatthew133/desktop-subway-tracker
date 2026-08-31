@@ -80,10 +80,10 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact
             break
     
     # Left: Daily fact (at bottom left)
-    fact_y = HEIGHT - 85
-    # Wrap fact text to fit left column width (max 3 lines)
+    fact_y = HEIGHT - 95
+    # Wrap fact text to fit left column width (max 4 lines)
     left_col_width = int(MID_X - left_pad * 2)
-    wrapped_fact = _wrap_text(daily_fact, font_s, left_col_width, max_lines=3)
+    wrapped_fact = _wrap_text(daily_fact, font_s, left_col_width, max_lines=4)
     for line in wrapped_fact:
         draw.text((left_pad, fact_y), line, font=font_s, fill=0)
         fact_y += (font_s.size + 3)
