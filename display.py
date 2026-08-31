@@ -121,8 +121,8 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact
     right_buf = epd.getbuffer(right_img)
     
     # Display each region with partial refresh to minimize flashing
-    epd.display_partial(left_buf, 0, 0, int(MID_X), HEIGHT)
-    epd.display_partial(right_buf, int(MID_X), 0, WIDTH, HEIGHT)
+    epd.display_Partial(left_buf, 0, 0, int(MID_X), HEIGHT)
+    epd.display_Partial(right_buf, int(MID_X), 0, WIDTH, HEIGHT)
 
 def draw_lines(epd, lines):
     print("attempting draw lines to screen:")
