@@ -8,8 +8,10 @@ Software:
 - Other installs likely needed to venv
   - spidev
   - nyct-gtfs
-- Install waveshare software via https://github.com/waveshare/e-Paper.git
-  - add python lib to PYTHONPATH env variable for access to epd7in5_V2
+  - betterepd7in5
+- Install the display driver in the venv:
+  - `python3 -m pip install betterepd7in5`
+  - experimenting with this one as well, for better support for `display_Partial`: https://github.com/hchargois/betterepd7in5/
 
 Running:
 - `python3 main.py`

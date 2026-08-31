@@ -1,8 +1,8 @@
 import time
 import traceback
 from PIL import Image
-from display import init_display, clear_and_sleep, draw_weather_and_transit_lines
-from display import draw_right_half_only_debug, draw_left_half_only
+from display import init_display, draw_weather_and_transit_lines
+from display import draw_right_half_only, draw_left_half_only
 from time_util import current_time_string
 from subway import get_next_trains, print_train_times
 from bus import get_next_buses, print_bus_times
@@ -74,58 +74,62 @@ def main():
     last_transit_update_time = 0
     last_weather_update_time = 0
     first_run = True
-    transit_update_count = 0  # Counter to verify updates every 30s
     
     try:
         print("Starting tiered refresh display...")
         print(f"Transit: every {TRANSIT_REFRESH_INTERVAL}s | Weather: every {WEATHER_REFRESH_INTERVAL}s")
         print()
         
-        while True:
+        while first_run:
             now = time.time()
-            
-            # Check if transit update is due (or first run)
-            if first_run or (now - last_transit_update_time >= TRANSIT_REFRESH_INTERVAL):
-                print(f"[{time.strftime('%H:%M:%S')}] Updating transit (#{transit_update_count + 1})...")
-                try:
-                    transit_lines = fetch_transit_data()
-                    if not first_run:
-                        draw_right_half_only_debug(epd, background, transit_lines, counter=transit_update_count)
-                    transit_update_count += 1
-                    last_transit_update_time = now
-                    print(f"  ✓ Transit data fetched and displayed")
-                    print()
-                except Exception as e:
-                    print(f"  ✗ Transit fetch failed: {e}")
-                    print()
-            
-            # Check if weather update is due (or first run)
-            if first_run or (now - last_weather_update_time >= WEATHER_REFRESH_INTERVAL):
-                print(f"[{time.strftime('%H:%M:%S')}] Updating weather and fact...")
-                try:
-                    weather_lines, daily_fact = fetch_weather_data()
-                    if not first_run:
-                        draw_left_half_only(epd, background, weather_lines, daily_fact)
-                    last_weather_update_time = now
-                    print(f"  ✓ Weather + fact data fetched and displayed")
-                    print()
-                except Exception as e:
-                    print(f"  ✗ Weather fetch failed: {e}")
-                    print()
-            
-            # Do a full render on first iteration
-            if first_run:
-                print(f"[{time.strftime('%H:%M:%S')}] Initial full render...")
-                draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact)
-                print(f"  ✓ Display initialized")
-                # Switch to partial mode for subsequent updates
-                epd.init_part()
-                print(f"  ✓ Switched to partial refresh mode")
-                print()
-                first_run = False
-            
-            # Small sleep to prevent tight loop
-            time.sleep(1)
+            try:
+                transit_lines = fetch_transit_data()
+                last_transit_update_time = now
+            except Exception as e:
+                print(f"  ✗ Transit fetch failed: {e}")
+
+            try:
+                weather_lines, daily_fact = fetch_weather_data()
+                last_weather_update_time = now
+            except Exception as e:
+                print(f"  ✗ Weather fetch failed: {e}")
+
+            print(f"[{time.strftime('%H:%M:%S')}] Initial full render...")
+            draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact)
+            print("  ✓ Display initialized")
+            first_run = False
+
+        with epd.display_bilevel_partial_refresh() as partial_display:
+            print("  ✓ Partial refresh mode ready")
+            print()
+            while True:
+                now = time.time()
+
+                if now - last_transit_update_time >= TRANSIT_REFRESH_INTERVAL:
+                    print(f"[{time.strftime('%H:%M:%S')}] Updating transit...")
+                    try:
+                        transit_lines = fetch_transit_data()
+                        draw_right_half_only(partial_display, background, transit_lines)
+                        last_transit_update_time = now
+                        print("  ✓ Transit data fetched and displayed")
+                        print()
+                    except Exception as e:
+                        print(f"  ✗ Transit fetch failed: {e}")
+                        print()
+
+                if now - last_weather_update_time >= WEATHER_REFRESH_INTERVAL:
+                    print(f"[{time.strftime('%H:%M:%S')}] Updating weather and fact...")
+                    try:
+                        weather_lines, daily_fact = fetch_weather_data()
+                        draw_left_half_only(partial_display, background, weather_lines, daily_fact)
+                        last_weather_update_time = now
+                        print("  ✓ Weather + fact data fetched and displayed")
+                        print()
+                    except Exception as e:
+                        print(f"  ✗ Weather fetch failed: {e}")
+                        print()
+
+                time.sleep(1)
             
     except KeyboardInterrupt:
         print("\n\nInterrupted by user")
@@ -134,7 +138,7 @@ def main():
         print(f"Error: {e}")
         traceback.print_exc()
     finally:
-        clear_and_sleep(epd)
+        print("Display stopped")
             
 if __name__ == "__main__":
     main()

@@ -1,5 +1,4 @@
-from waveshare_epd import epd7in5_V2 as epd7in5
-import RPi.GPIO as GPIO
+import betterepd7in5
 from PIL import Image, ImageDraw, ImageFont
 from time_util import current_time_string, current_date_time_string
 from pathlib import Path
@@ -16,10 +15,7 @@ HERE = Path(__file__).resolve().parent
 MTA_LOGO = HERE / "assets" / "MTA_LOGO.png"
 
 def init_display():
-    epd = epd7in5.EPD()
-    epd.init()
-    epd.Clear()
-    return epd
+    return betterepd7in5.EPD(betterepd7in5.RaspberryPi())
 
 def _wrap_text(text, font, max_width, max_lines=3):
     """Wrap text to fit within max_width pixels. Returns list of lines, truncated to max_lines."""
@@ -111,12 +107,12 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact
     draw.text((WIDTH - 8, HEIGHT - 10),
               stamp, font=font_s, fill=0, anchor="rb")
 
-    epd.display(epd.getbuffer(img))
+    with epd.display_bilevel_full_refresh(sleep=False) as display:
+        display(img)
 
-def draw_right_half_only(epd, img, transit_lines):
+def draw_right_half_only(display, img, transit_lines):
     """
-    Update only the right half (transit info) with partial refresh.
-    Renders into the full 800x480 image, then partial-updates just the right region.
+    Render the transit information and issue a non-flashing partial refresh.
     """
     draw = ImageDraw.Draw(img)
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)
@@ -145,45 +141,12 @@ def draw_right_half_only(epd, img, transit_lines):
     draw.text((WIDTH - 8, HEIGHT - 10),
               stamp, font=font_s, fill=0, anchor="rb")
     
-    # Partial refresh: right half only
-    # getbuffer needs full 800x480, display_Partial takes region coords
-    buf = epd.getbuffer(img)
-    epd.display_Partial(buf, int(MID_X), 0, WIDTH, HEIGHT)
+    display(img)
 
 
-def draw_right_half_only_debug(epd, img, transit_lines, counter=0):
-    """Debug version: update right half in TWO separate partial refreshes (top + bottom)."""
-    draw = ImageDraw.Draw(img)
-    font_s = ImageFont.truetype(FONT_PATH, FONT_S)
-    font_m = ImageFont.truetype(FONT_PATH, FONT_M)
-    
-    # Clear entire right half
-    draw.rectangle([400, 0, 800, 480], fill=255)
-    
-    # Draw divider
-    draw.line([(400, 0), (400, 480)], fill=0, width=1)
-    
-    # Draw counter at top
-    draw.text((420, 10), f"Loop #{counter}", font=font_m, fill=0)
-    draw.text((420, 50), "Top Half", font=font_m, fill=0)
-    draw.text((420, 100), "Middle", font=font_m, fill=0)
-    draw.text((420, 200), "Bottom Half", font=font_m, fill=0)
-    draw.text((420, 300), "Extra", font=font_m, fill=0)
-    
-    # Get full buffer
-    buf = epd.getbuffer(img)
-    
-    # Partial refresh TOP half of right section (240px)
-    epd.display_Partial(buf, 400, 0, 800, 240)
-    
-    # Partial refresh BOTTOM half of right section (240px)
-    epd.display_Partial(buf, 400, 240, 800, 480)
-
-
-def draw_left_half_only(epd, img, weather_lines, daily_fact=""):
+def draw_left_half_only(display, img, weather_lines, daily_fact=""):
     """
-    Update only the left half (weather + fact) with partial refresh.
-    Renders into the full 800x480 image, then partial-updates just the left region.
+    Render the weather and fact information and issue a non-flashing partial refresh.
     """
     draw = ImageDraw.Draw(img)
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)
@@ -220,9 +183,7 @@ def draw_left_half_only(epd, img, weather_lines, daily_fact=""):
         if fact_y > HEIGHT - 15:
             break
     
-    # Partial refresh: left half only
-    buf = epd.getbuffer(img)
-    epd.display_Partial(buf, 0, 0, int(MID_X), HEIGHT)
+    display(img)
 
 def draw_lines(epd, lines):
     print("attempting draw lines to screen:")
@@ -238,48 +199,16 @@ def draw_lines(epd, lines):
         draw.text((10, y), line, font=font, fill=0)
         y += FONT_SIZE + 5
     
-    epd.display(epd.getbuffer(image))
-    
-def clear_and_sleep(epd):
-    epd.init()
-    epd.Clear()
-    epd.sleep()
-    GPIO.cleanup()
-    print("Display cleared and GPIO released")
+    with epd.display_bilevel_full_refresh() as display:
+        display(image)
 
 def test_partial_refresh(epd):
-    """
-    Sanity test for display_Partial():
-    - Fill screen with white
-    - Draw a small black box at known coordinates (100, 50) to (200, 150)
-    - Call display_Partial with those exact coordinates
-    - The black box should appear without distortion at that location
-    """
-    print("\n=== Testing display_Partial ===")
-    
-    # Create full 800x480 white image
-    img = Image.new("1", (WIDTH, HEIGHT), 255)  # 255 = white
-    draw = ImageDraw.Draw(img)
-    
-    # Draw small black box at (100, 50) to (200, 150)
-    box_x_start, box_y_start = 100, 50
-    box_x_end, box_y_end = 200, 150
-    draw.rectangle([box_x_start, box_y_start, box_x_end, box_y_end], fill=0)  # 0 = black
-    
-    print(f"Drew black box: x={box_x_start}-{box_x_end}, y={box_y_start}-{box_y_end}")
-    
-    # Get full buffer
-    buf = epd.getbuffer(img)
-    
-    # Try partial refresh
-    print("Calling display_Partial...")
-    try:
-        epd.display_Partial(buf, box_x_start, box_y_start, box_x_end, box_y_end)
-        print("✓ display_Partial() succeeded")
-    except Exception as e:
-        print(f"✗ display_Partial() failed: {e}")
-        return
-    
-    # Now display full image to compare
-    print("Displaying full image for comparison...")
-    epd.display(buf)
+    """Display a small patch without a full-screen flash."""
+    box_x, box_y = 96, 50
+    box = Image.new("1", (104, 100), 0)
+
+    print(f"Drawing black box at ({box_x}, {box_y})")
+    with epd.display_bilevel_full_refresh(sleep=False) as display:
+        display(Image.new("1", (WIDTH, HEIGHT), 255))
+    with epd.display_bilevel_partial_refresh() as display:
+        display(box, xy=(box_x, box_y))
