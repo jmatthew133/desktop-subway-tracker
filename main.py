@@ -19,7 +19,7 @@ M31_STOP_ID = "402349" # York Av/E 77 St
 M31_LINE = "M31"
 M31_STOP_NAME = "York Av/E 77 St"
 
-REFRESH_INTERVAL = 30 # seconds
+REFRESH_INTERVAL = 60 # seconds
 
 
 def main(): 

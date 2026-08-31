@@ -111,8 +111,6 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact
     draw.text((WIDTH - 8, HEIGHT - 10),
               stamp, font=font_s, fill=0, anchor="rb")
 
-    # First, fall back to full display to confirm rendering works
-    # We'll debug display_Partial behavior separately
     epd.display(epd.getbuffer(img))
 
 def draw_lines(epd, lines):
@@ -137,3 +135,40 @@ def clear_and_sleep(epd):
     epd.sleep()
     GPIO.cleanup()
     print("Display cleared and GPIO released")
+
+def test_partial_refresh(epd):
+    """
+    Sanity test for display_Partial():
+    - Fill screen with white
+    - Draw a small black box at known coordinates (100, 50) to (200, 150)
+    - Call display_Partial with those exact coordinates
+    - The black box should appear without distortion at that location
+    """
+    print("\n=== Testing display_Partial ===")
+    
+    # Create full 800x480 white image
+    img = Image.new("1", (WIDTH, HEIGHT), 255)  # 255 = white
+    draw = ImageDraw.Draw(img)
+    
+    # Draw small black box at (100, 50) to (200, 150)
+    box_x_start, box_y_start = 100, 50
+    box_x_end, box_y_end = 200, 150
+    draw.rectangle([box_x_start, box_y_start, box_x_end, box_y_end], fill=0)  # 0 = black
+    
+    print(f"Drew black box: x={box_x_start}-{box_x_end}, y={box_y_start}-{box_y_end}")
+    
+    # Get full buffer
+    buf = epd.getbuffer(img)
+    
+    # Try partial refresh
+    print("Calling display_Partial...")
+    try:
+        epd.display_Partial(buf, box_x_start, box_y_start, box_x_end, box_y_end)
+        print("✓ display_Partial() succeeded")
+    except Exception as e:
+        print(f"✗ display_Partial() failed: {e}")
+        return
+    
+    # Now display full image to compare
+    print("Displaying full image for comparison...")
+    epd.display(buf)
