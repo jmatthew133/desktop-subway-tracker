@@ -7,10 +7,13 @@ URL = "https://api.open-meteo.com/v1/forecast"
 def print_weather(forecast):
     output_list = []
     day_string = "Today: "
-    weather_string = f"{forecast['current']['desc']} — {forecast['current']['high']}° / {forecast['current']['low']}° (feels {forecast['current']['feels_like']}°)"
-    print(day_string + weather_string)
+    weather_desc = f"{forecast['current']['desc']}, {forecast['current']['temp']}°F (feels {forecast['current']['feels_like']}°F)"
+    temps_string = f"High/Low: {forecast['current']['high']}° / {forecast['current']['low']}°"
+    print(day_string + weather_desc)
+    print(temps_string)
     output_list.append(day_string)
-    output_list.append(weather_string)
+    output_list.append(weather_desc)
+    output_list.append(temps_string)
     output_list.append("")
     for d in forecast['forecast']:
         day_string = f"{d['day']}: "

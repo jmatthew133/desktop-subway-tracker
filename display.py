@@ -75,7 +75,7 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact
     for i, line in enumerate(weather_lines):
         f = font_m  # Use same font size for all weather lines
         draw.text((left_pad, y), line, font=f, fill=0)
-        y += (f.size + 8)
+        y += (f.size + 4)
         if y > HEIGHT - 80:  # Leave room for fact at bottom
             break
     
