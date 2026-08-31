@@ -1,7 +1,7 @@
 from waveshare_epd import epd7in5_V2 as epd7in5
 import RPi.GPIO as GPIO
 from PIL import Image, ImageDraw, ImageFont
-from time_util import current_time_string
+from time_util import current_time_string, current_date_time_string
 from pathlib import Path
 
 WIDTH, HEIGHT = 800, 480
@@ -67,9 +67,8 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines):
             break
 
     # Bottom-right: Footer (last updated)
-    current_time = current_time_string()
-    stamp = "Last updated at: " + current_time
-    draw.text((MID_X + right_pad, HEIGHT - (font_s.size + 8)),
+    stamp = "Last updated: " + current_date_time_string()
+    draw.text((MID_X + 8, HEIGHT - (font_s.size + 8)),
               stamp, font=font_s, fill=0)
 
     epd.display(epd.getbuffer(img))

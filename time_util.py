@@ -15,3 +15,7 @@ def minutes_until(dt):
 def current_time_string():
     now = datetime.now()
     return now.strftime("%H:%M:%S")
+
+def current_date_time_string():
+    now = datetime.now()
+    return now.strftime("%m/%d/%y %H:%M:%S")
