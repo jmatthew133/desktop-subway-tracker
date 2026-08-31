@@ -9,7 +9,7 @@ Software:
   - spidev
   - nyct-gtfs
 - Install the display driver in the venv:
-  - `python3 -m pip install betterepd7in5` - we are using this instead of the official drivers because they have better support for partial display refreshes
+  - `python3 -m pip install betterepd7in5` - we are using this instead of the official drivers because it has better support for partial display refreshes
 
 Running:
 - `python3 main.py`
