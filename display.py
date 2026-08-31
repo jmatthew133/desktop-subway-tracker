@@ -113,6 +113,87 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact
 
     epd.display(epd.getbuffer(img))
 
+def draw_right_half_only(epd, img, transit_lines):
+    """
+    Update only the right half (transit info) with partial refresh.
+    Assumes img is a full 800x480 image. Redraws right half and partial-updates display.
+    """
+    draw = ImageDraw.Draw(img)
+    font_s = ImageFont.truetype(FONT_PATH, FONT_S)
+    font_m = ImageFont.truetype(FONT_PATH, FONT_M)
+    
+    # Clear right half (white)
+    draw.rectangle([int(MID_X), 0, WIDTH, HEIGHT], fill=255)
+    
+    # Center divider
+    draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
+    
+    # Right: Transit with logo
+    _paste_logo(img, top_y=8)
+    right_pad = 32
+    y = 8 + (Image.open(MTA_LOGO).height if MTA_LOGO.exists() else 60) + 10
+
+    line_h = font_m.size + 6
+    for line in transit_lines:
+        draw.text((MID_X + right_pad, y), line, font=font_m, fill=0)
+        y += line_h
+        if y > HEIGHT - (font_s.size + 14):
+            break
+
+    # Bottom-right: Footer (last updated)
+    stamp = current_date_time_string()
+    draw.text((WIDTH - 8, HEIGHT - 10),
+              stamp, font=font_s, fill=0, anchor="rb")
+    
+    # Partial refresh: right half only
+    buf = epd.getbuffer(img)
+    epd.display_Partial(buf, int(MID_X), 0, WIDTH, HEIGHT)
+
+
+def draw_left_half_only(epd, img, weather_lines, daily_fact=""):
+    """
+    Update only the left half (weather + fact) with partial refresh.
+    Assumes img is a full 800x480 image. Redraws left half and partial-updates display.
+    """
+    draw = ImageDraw.Draw(img)
+    font_s = ImageFont.truetype(FONT_PATH, FONT_S)
+    font_m = ImageFont.truetype(FONT_PATH, FONT_M)
+    
+    # Clear left half (white)
+    draw.rectangle([0, 0, int(MID_X), HEIGHT], fill=255)
+    
+    # Center divider
+    draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
+    
+    # Left: Weather
+    left_pad = 16
+    y = 16
+    for i, line in enumerate(weather_lines):
+        f = font_m  # Use same font size for all weather lines
+        draw.text((left_pad, y), line, font=f, fill=0)
+        y += (f.size + 4)
+        if y > HEIGHT - 80:  # Leave room for fact at bottom
+            break
+    
+    # Left: Daily fact (at bottom left)
+    # Fact of the day header (bold with larger font)
+    header_y = HEIGHT - 135
+    draw.text((left_pad, header_y), "Fact of the day:", font=font_m, fill=0)
+    
+    fact_y = header_y + font_m.size + 6
+    # Wrap fact text to fit left column width (max 5 lines)
+    left_col_width = int(MID_X - left_pad * 2)
+    wrapped_fact = _wrap_text(daily_fact, font_s, left_col_width, max_lines=5)
+    for line in wrapped_fact:
+        draw.text((left_pad, fact_y), line, font=font_s, fill=0)
+        fact_y += (font_s.size + 3)
+        if fact_y > HEIGHT - 15:
+            break
+    
+    # Partial refresh: left half only
+    buf = epd.getbuffer(img)
+    epd.display_Partial(buf, 0, 0, int(MID_X), HEIGHT)
+
 def draw_lines(epd, lines):
     print("attempting draw lines to screen:")
     print(lines)

@@ -1,12 +1,15 @@
 import time
 import traceback
+from PIL import Image
 from display import init_display, clear_and_sleep, draw_weather_and_transit_lines
+from display import draw_right_half_only, draw_left_half_only
 from time_util import current_time_string
 from subway import get_next_trains, print_train_times
 from bus import get_next_buses, print_bus_times
 from weather import get_weather, print_weather
 from daily_fact import get_daily_fact
 
+# Transit configuration
 Q_STOP = "Q03S" # 72nd St Q Southbound
 Q_LINE = "Q"
 Q_STOP_NAME = "72 St"
@@ -19,55 +22,110 @@ M31_STOP_ID = "402349" # York Av/E 77 St
 M31_LINE = "M31"
 M31_STOP_NAME = "York Av/E 77 St"
 
-REFRESH_INTERVAL = 60 # seconds
+# Refresh intervals (in seconds) - configurable
+TRANSIT_REFRESH_INTERVAL = 30  # Fast: every 30 seconds
+WEATHER_REFRESH_INTERVAL = 3600  # Slow: every 60 minutes (3600 seconds)
+
+WIDTH, HEIGHT = 800, 480
 
 
-def main(): 
+def fetch_transit_data():
+    """Fetch all transit data (subway + bus times). Returns list of formatted lines."""
+    transit_lines = []
+    
+    upcoming_q_trains = get_next_trains(Q_LINE, Q_STOP, 3)
+    q_times = print_train_times(upcoming_q_trains, Q_LINE, Q_STOP_NAME)
+    transit_lines += q_times
+    
+    upcoming_6_trains = get_next_trains(SIX_LINE, SIX_STOP, 3)
+    six_times = print_train_times(upcoming_6_trains, SIX_LINE, SIX_STOP_NAME)
+    transit_lines += six_times
+    
+    upcoming_m31_buses = get_next_buses(M31_STOP_ID, 3)
+    bus_times = print_bus_times(upcoming_m31_buses, M31_LINE, M31_STOP_NAME)
+    transit_lines += bus_times
+    
+    return transit_lines
+
+
+def fetch_weather_data():
+    """Fetch weather + daily fact. Returns tuple (weather_lines, daily_fact)."""
+    weather_data = get_weather()
+    weather_lines = print_weather(weather_data)
+    daily_fact = get_daily_fact()
+    return weather_lines, daily_fact
+
+
+def main():
+    """
+    Tiered refresh system:
+    - Right half (transit): updates every TRANSIT_REFRESH_INTERVAL seconds
+    - Left half (weather + fact): updates every WEATHER_REFRESH_INTERVAL seconds
+    
+    Shared background image is maintained and updated partially.
+    """
     epd = init_display()
     
-    try: 
-        while True:
-            # Subway Times
-            transit_lines = []
-            
-            upcoming_q_trains = get_next_trains(Q_LINE, Q_STOP, 3)
-            q_times = print_train_times(upcoming_q_trains, Q_LINE, Q_STOP_NAME)
-            transit_lines += q_times
-            
-            upcoming_6_trains = get_next_trains(SIX_LINE, SIX_STOP, 3)
-            six_times = print_train_times(upcoming_6_trains, SIX_LINE, SIX_STOP_NAME)
-            transit_lines += six_times
-            
-            upcoming_m31_buses = get_next_buses(M31_STOP_ID, 3)
-            bus_times = print_bus_times(upcoming_m31_buses, M31_LINE, M31_STOP_NAME)
-            transit_lines += bus_times
-            
-            print()
-            
-            # Weather
-            weather_lines = []
-            
-            weather_data = get_weather()
-            forecast = print_weather(weather_data)
-            weather_lines += forecast
-            
-            print()
-            
-            daily_fact = get_daily_fact()
-            
-            # Main draw function
-            draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact)
-                
-            print("Refresh cycle complete! " + current_time_string())   
-            print("_____________________")
-            print()
-            
-            time.sleep(REFRESH_INTERVAL)
-    except KeyboardInterrupt:
+    # Shared background image (persistent across refreshes)
+    background = Image.new("1", (WIDTH, HEIGHT), 255)
+    
+    # State tracking
+    transit_lines = []
+    weather_lines = []
+    daily_fact = ""
+    
+    # Track last update times
+    last_transit_update_time = 0
+    last_weather_update_time = 0
+    first_run = True
+    
+    try:
+        print("Starting tiered refresh display...")
+        print(f"Transit: every {TRANSIT_REFRESH_INTERVAL}s | Weather: every {WEATHER_REFRESH_INTERVAL}s")
         print()
-        print("Interrupted by User")
+        
+        while True:
+            now = time.time()
+            
+            # Check if transit update is due (or first run)
+            if first_run or (now - last_transit_update_time >= TRANSIT_REFRESH_INTERVAL):
+                print(f"[{time.strftime('%H:%M:%S')}] Updating transit...")
+                try:
+                    transit_lines = fetch_transit_data()
+                    if not first_run:
+                        draw_right_half_only(epd, background, transit_lines)
+                    last_transit_update_time = now
+                    print(f"  ✓ Transit data fetched and displayed")
+                except Exception as e:
+                    print(f"  ✗ Transit fetch failed: {e}")
+            
+            # Check if weather update is due (or first run)
+            if first_run or (now - last_weather_update_time >= WEATHER_REFRESH_INTERVAL):
+                print(f"[{time.strftime('%H:%M:%S')}] Updating weather...")
+                try:
+                    weather_lines, daily_fact = fetch_weather_data()
+                    if not first_run:
+                        draw_left_half_only(epd, background, weather_lines, daily_fact)
+                    last_weather_update_time = now
+                    print(f"  ✓ Weather data fetched and displayed")
+                except Exception as e:
+                    print(f"  ✗ Weather fetch failed: {e}")
+            
+            # Do a full render on first iteration
+            if first_run:
+                print(f"[{time.strftime('%H:%M:%S')}] Initial full render...")
+                draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact)
+                print(f"  ✓ Display initialized")
+                print()
+                first_run = False
+            
+            # Small sleep to prevent tight loop
+            time.sleep(1)
+            
+    except KeyboardInterrupt:
+        print("\n\nInterrupted by user")
     except Exception as e:
-        print("Encountered error during execution")
+        print(f"\nEncountered error during execution")
         print(f"Error: {e}")
         traceback.print_exc()
     finally:
