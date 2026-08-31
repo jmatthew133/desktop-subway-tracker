@@ -2,14 +2,13 @@ import time
 import traceback
 from PIL import Image
 from display import init_display, clear_and_sleep, draw_weather_and_transit_lines
-from display import draw_right_half_only, draw_left_half_only
+from display import draw_right_half_only_debug, draw_left_half_only
 from time_util import current_time_string
 from subway import get_next_trains, print_train_times
 from bus import get_next_buses, print_bus_times
 from weather import get_weather, print_weather
 from daily_fact import get_daily_fact
 
-# Transit configuration
 Q_STOP = "Q03S" # 72nd St Q Southbound
 Q_LINE = "Q"
 Q_STOP_NAME = "72 St"
@@ -22,15 +21,13 @@ M31_STOP_ID = "402349" # York Av/E 77 St
 M31_LINE = "M31"
 M31_STOP_NAME = "York Av/E 77 St"
 
-# Refresh intervals (in seconds) - configurable
-TRANSIT_REFRESH_INTERVAL = 30  # Fast: every 30 seconds
-WEATHER_REFRESH_INTERVAL = 3600  # Slow: every 60 minutes (3600 seconds)
+TRANSIT_REFRESH_INTERVAL = 30  # Fast: 30s
+WEATHER_REFRESH_INTERVAL = 3600  # Slow: 60m (3600s)
 
 WIDTH, HEIGHT = 800, 480
 
 
 def fetch_transit_data():
-    """Fetch all transit data (subway + bus times). Returns list of formatted lines."""
     transit_lines = []
     
     upcoming_q_trains = get_next_trains(Q_LINE, Q_STOP, 3)
@@ -49,7 +46,6 @@ def fetch_transit_data():
 
 
 def fetch_weather_data():
-    """Fetch weather + daily fact. Returns tuple (weather_lines, daily_fact)."""
     weather_data = get_weather()
     weather_lines = print_weather(weather_data)
     daily_fact = get_daily_fact()
@@ -93,7 +89,7 @@ def main():
                 try:
                     transit_lines = fetch_transit_data()
                     if not first_run:
-                        draw_right_half_only(epd, background, transit_lines)
+                        draw_right_half_only_debug(epd, background, transit_lines)
                     last_transit_update_time = now
                     print(f"  ✓ Transit data fetched and displayed")
                 except Exception as e:

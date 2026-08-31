@@ -114,10 +114,6 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact
     epd.display(epd.getbuffer(img))
 
 def draw_right_half_only(epd, img, transit_lines):
-    """
-    Update only the right half (transit info) with partial refresh.
-    Assumes img is a full 800x480 image. Redraws right half and partial-updates display.
-    """
     draw = ImageDraw.Draw(img)
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)
     font_m = ImageFont.truetype(FONT_PATH, FONT_M)
@@ -150,11 +146,36 @@ def draw_right_half_only(epd, img, transit_lines):
     epd.display_Partial(buf, int(MID_X), 0, WIDTH, HEIGHT)
 
 
+def draw_right_half_only_debug(epd, img, transit_lines):
+    """Debug version: draw simple test pattern to verify coordinates."""
+    draw = ImageDraw.Draw(img)
+    font_s = ImageFont.truetype(FONT_PATH, FONT_S)
+    font_m = ImageFont.truetype(FONT_PATH, FONT_M)
+    
+    # Clear right half (white)
+    draw.rectangle([int(MID_X), 0, WIDTH, HEIGHT], fill=255)
+    
+    # Center divider
+    draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
+    
+    # Draw vertical test lines to check coordinate mapping
+    for y in range(0, HEIGHT, 50):
+        draw.line([(int(MID_X) + 10, y), (WIDTH - 10, y)], fill=0, width=2)
+    
+    # Draw test text at known positions
+    draw.text((int(MID_X) + 32, 50), "TEST TOP", font=font_m, fill=0)
+    draw.text((int(MID_X) + 32, 150), "TEST MID", font=font_m, fill=0)
+    draw.text((int(MID_X) + 32, 250), "TEST BOT", font=font_m, fill=0)
+    
+    # Test footer
+    draw.text((WIDTH - 8, HEIGHT - 10), "TEST FOOTER", font=font_s, fill=0, anchor="rb")
+    
+    # Partial refresh: right half only
+    buf = epd.getbuffer(img)
+    epd.display_Partial(buf, int(MID_X), 0, WIDTH, HEIGHT)
+
+
 def draw_left_half_only(epd, img, weather_lines, daily_fact=""):
-    """
-    Update only the left half (weather + fact) with partial refresh.
-    Assumes img is a full 800x480 image. Redraws left half and partial-updates display.
-    """
     draw = ImageDraw.Draw(img)
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)
     font_m = ImageFont.truetype(FONT_PATH, FONT_M)
