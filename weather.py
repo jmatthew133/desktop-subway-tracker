@@ -66,7 +66,7 @@ def get_weather():
     return {"current": current, "forecast": forecast}
 
 
-# Weather code map (Open-Meteo standard)
+# Weather code map (Open-Meteo standard / WMO codes)
 WEATHER_CODES = {
     0: "Clear sky",
     1: "Mainly clear",
@@ -83,6 +83,12 @@ WEATHER_CODES = {
     71: "Slight snow",
     73: "Moderate snow",
     75: "Heavy snow",
+    80: "Light showers",
+    81: "Moderate showers",
+    82: "Heavy showers",
+    85: "Light snow showers",
+    86: "Heavy snow showers",
     95: "Thunderstorm",
-    99: "Hail",
+    96: "Thunderstorm with hail",
+    99: "Thunderstorm with heavy hail",
 }
