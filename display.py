@@ -21,8 +21,8 @@ def init_display():
     epd.Clear()
     return epd
 
-def _wrap_text(text, font, max_width):
-    """Wrap text to fit within max_width pixels. Returns list of lines."""
+def _wrap_text(text, font, max_width, max_lines=3):
+    """Wrap text to fit within max_width pixels. Returns list of lines, truncated to max_lines."""
     words = text.split()
     lines = []
     current_line = []
@@ -37,9 +37,11 @@ def _wrap_text(text, font, max_width):
         else:
             if current_line:
                 lines.append(" ".join(current_line))
+                if len(lines) >= max_lines:
+                    return lines
             current_line = [word]
     
-    if current_line:
+    if current_line and len(lines) < max_lines:
         lines.append(" ".join(current_line))
     
     return lines
@@ -78,14 +80,14 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact
             break
     
     # Left: Daily fact (at bottom left)
-    fact_y = HEIGHT - 60
-    # Wrap fact text to fit left column width
+    fact_y = HEIGHT - 50
+    # Wrap fact text to fit left column width (max 3 lines)
     left_col_width = int(MID_X - left_pad * 2)
-    wrapped_fact = _wrap_text(daily_fact, font_s, left_col_width)
+    wrapped_fact = _wrap_text(daily_fact, font_s, left_col_width, max_lines=3)
     for line in wrapped_fact:
         draw.text((left_pad, fact_y), line, font=font_s, fill=0)
-        fact_y += (font_s.size + 4)
-        if fact_y > HEIGHT - 8:
+        fact_y += (font_s.size + 3)
+        if fact_y > HEIGHT - 4:
             break
 
     # Right: Transit
@@ -102,7 +104,7 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact
 
     # Bottom-right: Footer (last updated)
     stamp = "Last updated: " + current_date_time_string()
-    draw.text((WIDTH - 8, HEIGHT - font_s.size - 4),
+    draw.text((WIDTH - 8, HEIGHT - font_s.size - 20),
               stamp, font=font_s, fill=0, anchor="rm")
 
     epd.display(epd.getbuffer(img))

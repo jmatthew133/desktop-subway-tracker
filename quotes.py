@@ -1,7 +1,11 @@
 import requests
 import json
+import urllib3
 from datetime import datetime
 from pathlib import Path
+
+# Suppress SSL warnings for Raspberry Pi compatibility
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 CACHE_DIR = Path(__file__).resolve().parent / "cache"
 CACHE_FILE = CACHE_DIR / "daily_fact.json"
@@ -42,6 +46,7 @@ def get_daily_fact():
     # Try cache first
     cached = _load_cached_fact()
     if cached:
+        print("[Fact] Using cached fact")
         return cached
     
     # Fetch from API
@@ -61,9 +66,11 @@ def get_daily_fact():
         if fact:
             # Save to cache
             _save_fact_to_cache(fact)
+            print("[Fact] Fetched from API")
             return fact
     except Exception as e:
-        print(f"Error fetching daily fact: {e}")
+        print(f"[Fact] Error fetching daily fact: {e}")
     
     # Fallback if API fails
+    print("[Fact] Using fallback message")
     return "Some issue loading the fact of the day :("
