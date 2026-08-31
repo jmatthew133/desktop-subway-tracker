@@ -107,10 +107,10 @@ def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, daily
     draw.text((WIDTH - 8, HEIGHT - 10),
               stamp, font=font_s, fill=0, anchor="rb")
 
-    with epd.display_bilevel_full_refresh(sleep=False) as display:
+    with epd.display_bilevel_full_refresh() as display:
         display(img)
 
-def draw_right_half_only(display, img, transit_lines):
+def draw_right_half_only(epd, img, transit_lines):
     """
     Render the transit information and issue a non-flashing partial refresh.
     """
@@ -141,46 +141,5 @@ def draw_right_half_only(display, img, transit_lines):
     draw.text((WIDTH - 8, HEIGHT - 10),
               stamp, font=font_s, fill=0, anchor="rb")
     
-    display(img)
-
-
-def draw_left_half_only(display, img, weather_lines, daily_fact=""):
-    """
-    Render the weather and fact information and issue a non-flashing partial refresh.
-    """
-    draw = ImageDraw.Draw(img)
-    font_s = ImageFont.truetype(FONT_PATH, FONT_S)
-    font_m = ImageFont.truetype(FONT_PATH, FONT_M)
-    
-    # Clear left half (white)
-    draw.rectangle([0, 0, int(MID_X), HEIGHT], fill=255)
-    
-    # Center divider
-    draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
-    
-    # Left: Weather
-    left_pad = 16
-    y = 16
-    for i, line in enumerate(weather_lines):
-        f = font_m  # Use same font size for all weather lines
-        draw.text((left_pad, y), line, font=f, fill=0)
-        y += (f.size + 4)
-        if y > HEIGHT - 80:  # Leave room for fact at bottom
-            break
-    
-    # Left: Daily fact (at bottom left)
-    # Fact of the day header (bold with larger font)
-    header_y = HEIGHT - 135
-    draw.text((left_pad, header_y), "Fact of the day:", font=font_m, fill=0)
-    
-    fact_y = header_y + font_m.size + 6
-    # Wrap fact text to fit left column width (max 5 lines)
-    left_col_width = int(MID_X - left_pad * 2)
-    wrapped_fact = _wrap_text(daily_fact, font_s, left_col_width, max_lines=5)
-    for line in wrapped_fact:
-        draw.text((left_pad, fact_y), line, font=font_s, fill=0)
-        fact_y += (font_s.size + 3)
-        if fact_y > HEIGHT - 15:
-            break
-    
-    display(img)
+    with epd.display_bilevel_partial_refresh() as display:
+        display(img)
