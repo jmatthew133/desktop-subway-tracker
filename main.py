@@ -96,6 +96,7 @@ def main():
                 epd, background, weather_lines, transit_lines, daily_fact
             )
             print("  ✓ Display initialized")
+            print()
             first_run = False
 
         while True:
