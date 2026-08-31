@@ -152,23 +152,29 @@ def draw_right_half_only(epd, img, transit_lines):
 
 
 def draw_right_half_only_debug(epd, img, transit_lines, counter=0):
-    """Debug version: test small region first to isolate stretching issue."""
+    """Debug version: test 200px tall region with visible content to detect stretching."""
     draw = ImageDraw.Draw(img)
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)
     font_m = ImageFont.truetype(FONT_PATH, FONT_M)
     
-    # Clear a small region (100x100 at top right)
-    draw.rectangle([400, 0, 500, 100], fill=255)
+    # Clear region: right half, 200px tall (top half of right section)
+    draw.rectangle([400, 0, 800, 200], fill=255)
     
-    # Draw solid black rectangle in small region
-    draw.rectangle([410, 10, 490, 90], fill=0)
+    # Draw horizontal reference lines at 50px intervals to see if stretching occurs
+    for y in [25, 75, 125, 175]:
+        draw.line([(410, y), (790, y)], fill=0, width=1)
     
-    # Draw counter text on top
-    draw.text((420, 20), f"#{counter}", font=font_s, fill=255)  # white text on black
+    # Draw counter at top (big, visible)
+    draw.text((420, 5), f"Loop #{counter}", font=font_m, fill=0)
     
-    # Partial refresh: SMALL region only (100x100 pixels)
+    # Draw test text at multiple positions to show if vertical spacing is wrong
+    draw.text((420, 40), "Top", font=font_s, fill=0)
+    draw.text((420, 100), "Middle", font=font_s, fill=0)
+    draw.text((420, 160), "Bottom", font=font_s, fill=0)
+    
+    # Partial refresh: right half, 200px tall
     buf = epd.getbuffer(img)
-    epd.display_Partial(buf, 400, 0, 500, 100)
+    epd.display_Partial(buf, 400, 0, 800, 200)
 
 
 def draw_left_half_only(epd, img, weather_lines, daily_fact=""):
