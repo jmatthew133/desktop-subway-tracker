@@ -54,8 +54,8 @@ def _paste_logo(canvas, top_y=8):
     x = MID_X + (WIDTH - MID_X - logo.width) // 2
     canvas.paste(logo, (int(x), top_y), mask)
 
-def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact=""):
-    img = Image.new("1", (WIDTH, HEIGHT), 255)
+def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, daily_fact=""):
+    img.paste(255, (0, 0, WIDTH, HEIGHT))
     draw = ImageDraw.Draw(img)
 
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)

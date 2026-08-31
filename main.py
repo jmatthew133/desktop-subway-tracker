@@ -95,7 +95,9 @@ def main():
                 print(f"  ✗ Weather fetch failed: {e}")
 
             print(f"[{time.strftime('%H:%M:%S')}] Initial full render...")
-            draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact)
+            draw_weather_and_transit_lines(
+                epd, background, weather_lines, transit_lines, daily_fact
+            )
             print("  ✓ Display initialized")
             first_run = False
 

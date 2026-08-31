@@ -11,7 +11,6 @@ Software:
   - betterepd7in5
 - Install the display driver in the venv:
   - `python3 -m pip install betterepd7in5`
-  - experimenting with this one as well, for better support for `display_Partial`: https://github.com/hchargois/betterepd7in5/
 
 Running:
 - `python3 main.py`
