@@ -5,6 +5,7 @@ from time_util import current_time_string
 from subway import get_next_trains, print_train_times
 from bus import get_next_buses, print_bus_times
 from weather import get_weather, print_weather
+from quotes import get_daily_fact
 
 Q_STOP = "Q03S" # 72nd St Q Southbound
 Q_LINE = "Q"
@@ -52,8 +53,11 @@ def main():
             
             print()
             
+            # Daily fact
+            daily_fact = get_daily_fact()
+            
             # Main draw function
-            draw_weather_and_transit_lines(epd, weather_lines, transit_lines)
+            draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact)
                 
             print("Refresh cycle complete! " + current_time_string())   
             print("_____________________")

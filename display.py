@@ -21,6 +21,29 @@ def init_display():
     epd.Clear()
     return epd
 
+def _wrap_text(text, font, max_width):
+    """Wrap text to fit within max_width pixels. Returns list of lines."""
+    words = text.split()
+    lines = []
+    current_line = []
+    
+    for word in words:
+        test_line = " ".join(current_line + [word])
+        bbox = font.getbbox(test_line)
+        line_width = bbox[2] - bbox[0]
+        
+        if line_width <= max_width:
+            current_line.append(word)
+        else:
+            if current_line:
+                lines.append(" ".join(current_line))
+            current_line = [word]
+    
+    if current_line:
+        lines.append(" ".join(current_line))
+    
+    return lines
+
 def _paste_logo(canvas, top_y=8):
     if not MTA_LOGO.exists():
         return
@@ -33,7 +56,7 @@ def _paste_logo(canvas, top_y=8):
     x = MID_X + (WIDTH - MID_X - logo.width) // 2
     canvas.paste(logo, (int(x), top_y), mask)
 
-def draw_weather_and_transit_lines(epd, weather_lines, transit_lines):
+def draw_weather_and_transit_lines(epd, weather_lines, transit_lines, daily_fact=""):
     img = Image.new("1", (WIDTH, HEIGHT), 255)
     draw = ImageDraw.Draw(img)
 
@@ -51,7 +74,18 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines):
         f = font_l if (i == 0 | i == 1) else font_m
         draw.text((left_pad, y), line, font=f, fill=0)
         y += (f.size + 8)
-        if y > HEIGHT - 16:
+        if y > HEIGHT - 80:  # Leave room for fact at bottom
+            break
+    
+    # Left: Daily fact (at bottom left)
+    fact_y = HEIGHT - 60
+    # Wrap fact text to fit left column width
+    left_col_width = int(MID_X - left_pad * 2)
+    wrapped_fact = _wrap_text(daily_fact, font_s, left_col_width)
+    for line in wrapped_fact:
+        draw.text((left_pad, fact_y), line, font=font_s, fill=0)
+        fact_y += (font_s.size + 4)
+        if fact_y > HEIGHT - 8:
             break
 
     # Right: Transit
@@ -68,7 +102,7 @@ def draw_weather_and_transit_lines(epd, weather_lines, transit_lines):
 
     # Bottom-right: Footer (last updated)
     stamp = "Last updated: " + current_date_time_string()
-    draw.text((WIDTH - 8, HEIGHT - (font_s.size + 8)),
+    draw.text((WIDTH - 8, HEIGHT - font_s.size - 4),
               stamp, font=font_s, fill=0, anchor="rm")
 
     epd.display(epd.getbuffer(img))
