@@ -31,4 +31,5 @@ def get_next_trains(line: str, stop_id: str, limit: int = 3):
                     "arrival_dt": stop.arrival
                 })
 
+    upcoming_arrivals.sort(key=lambda arrival: arrival["arrival_dt"])
     return upcoming_arrivals[:limit]

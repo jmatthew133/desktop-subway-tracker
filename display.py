@@ -54,6 +54,7 @@ def _paste_logo(canvas, top_y=8):
     x = MID_X + (WIDTH - MID_X - logo.width) // 2
     canvas.paste(logo, (int(x), top_y), mask)
 
+# Draw the entire screen with a full refresh
 def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, daily_fact=""):
     img.paste(255, (0, 0, WIDTH, HEIGHT))
     draw = ImageDraw.Draw(img)
@@ -110,10 +111,8 @@ def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, daily
     with epd.display_bilevel_full_refresh() as display:
         display(img)
 
+# Draw only the right half of the display with a partial refresh, for updating transit info which changes often
 def draw_right_half_only(epd, img, transit_lines):
-    """
-    Render the transit information and issue a non-flashing partial refresh.
-    """
     draw = ImageDraw.Draw(img)
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)
     font_m = ImageFont.truetype(FONT_PATH, FONT_M)

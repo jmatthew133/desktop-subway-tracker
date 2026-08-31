@@ -78,7 +78,7 @@ def main():
         print()
         
         while first_run:
-            now = time.time()
+            now = time.monotonic()
             try:
                 transit_lines = fetch_transit_data()
                 last_transit_update_time = now
@@ -99,7 +99,8 @@ def main():
             first_run = False
 
         while True:
-            now = time.time()
+            now = time.monotonic()
+            full_refresh_completed = False
 
             if now - last_weather_update_time >= WEATHER_REFRESH_INTERVAL:
                 print(f"[{time.strftime('%H:%M:%S')}] Updating weather and fact...")
@@ -109,13 +110,17 @@ def main():
                         epd, background, weather_lines, transit_lines, daily_fact
                     )
                     last_weather_update_time = now
+                    full_refresh_completed = True
                     print("  ✓ Weather + fact fetched and full display refreshed")
                     print()
                 except Exception as e:
                     print(f"  ✗ Weather fetch failed: {e}")
                     print()
 
-            if now - last_transit_update_time >= TRANSIT_REFRESH_INTERVAL:
+            if (
+                not full_refresh_completed
+                and now - last_transit_update_time >= TRANSIT_REFRESH_INTERVAL
+            ):
                 print(f"[{time.strftime('%H:%M:%S')}] Updating transit...")
                 try:
                     transit_lines = fetch_transit_data()
