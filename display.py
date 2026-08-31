@@ -152,29 +152,32 @@ def draw_right_half_only(epd, img, transit_lines):
 
 
 def draw_right_half_only_debug(epd, img, transit_lines, counter=0):
-    """Debug version: test 150px tall region."""
+    """Debug version: update right half in TWO separate partial refreshes (top + bottom)."""
     draw = ImageDraw.Draw(img)
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)
     font_m = ImageFont.truetype(FONT_PATH, FONT_M)
     
-    # Clear region: right half, 150px tall
-    draw.rectangle([400, 0, 800, 150], fill=255)
+    # Clear entire right half
+    draw.rectangle([400, 0, 800, 480], fill=255)
     
-    # Draw horizontal reference lines at ~40px intervals
-    for y in [20, 60, 100, 140]:
-        draw.line([(410, y), (790, y)], fill=0, width=1)
+    # Draw divider
+    draw.line([(400, 0), (400, 480)], fill=0, width=1)
     
     # Draw counter at top
-    draw.text((420, 3), f"Loop #{counter}", font=font_m, fill=0)
+    draw.text((420, 10), f"Loop #{counter}", font=font_m, fill=0)
+    draw.text((420, 50), "Top Half", font=font_m, fill=0)
+    draw.text((420, 100), "Middle", font=font_m, fill=0)
+    draw.text((420, 200), "Bottom Half", font=font_m, fill=0)
+    draw.text((420, 300), "Extra", font=font_m, fill=0)
     
-    # Draw test text at multiple positions
-    draw.text((420, 30), "Top", font=font_s, fill=0)
-    draw.text((420, 75), "Mid", font=font_s, fill=0)
-    draw.text((420, 120), "Bot", font=font_s, fill=0)
-    
-    # Partial refresh: right half, 150px tall
+    # Get full buffer
     buf = epd.getbuffer(img)
-    epd.display_Partial(buf, 400, 0, 800, 150)
+    
+    # Partial refresh TOP half of right section (240px)
+    epd.display_Partial(buf, 400, 0, 800, 240)
+    
+    # Partial refresh BOTTOM half of right section (240px)
+    epd.display_Partial(buf, 400, 240, 800, 480)
 
 
 def draw_left_half_only(epd, img, weather_lines, daily_fact=""):
