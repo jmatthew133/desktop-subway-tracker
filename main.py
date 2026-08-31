@@ -3,7 +3,6 @@ import traceback
 from PIL import Image
 from display import init_display, draw_weather_and_transit_lines
 from display import draw_right_half_only, draw_left_half_only
-from time_util import current_time_string
 from subway import get_next_trains, print_train_times
 from bus import get_next_buses, print_bus_times
 from weather import get_weather, print_weather

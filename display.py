@@ -1,6 +1,6 @@
 import betterepd7in5
 from PIL import Image, ImageDraw, ImageFont
-from time_util import current_time_string, current_date_time_string
+from time_util import current_date_time_string
 from pathlib import Path
 
 WIDTH, HEIGHT = 800, 480
@@ -184,31 +184,3 @@ def draw_left_half_only(display, img, weather_lines, daily_fact=""):
             break
     
     display(img)
-
-def draw_lines(epd, lines):
-    print("attempting draw lines to screen:")
-    print(lines)
-    print()
-    
-    image = Image.new("1", (WIDTH, HEIGHT), 255)
-    draw = ImageDraw.Draw(image)
-    font = ImageFont.truetype(FONT_PATH, FONT_SIZE)
-    y = 10
-    
-    for line in lines:
-        draw.text((10, y), line, font=font, fill=0)
-        y += FONT_SIZE + 5
-    
-    with epd.display_bilevel_full_refresh() as display:
-        display(image)
-
-def test_partial_refresh(epd):
-    """Display a small patch without a full-screen flash."""
-    box_x, box_y = 96, 50
-    box = Image.new("1", (104, 100), 0)
-
-    print(f"Drawing black box at ({box_x}, {box_y})")
-    with epd.display_bilevel_full_refresh(sleep=False) as display:
-        display(Image.new("1", (WIDTH, HEIGHT), 255))
-    with epd.display_bilevel_partial_refresh() as display:
-        display(box, xy=(box_x, box_y))
