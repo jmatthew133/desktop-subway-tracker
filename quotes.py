@@ -6,7 +6,7 @@ from pathlib import Path
 CACHE_DIR = Path(__file__).resolve().parent / "cache"
 CACHE_FILE = CACHE_DIR / "daily_fact.json"
 
-FACT_URL = "https://api.api-ninjas.com/v1/factoftheday"
+FACT_URL = "https://uselessfacts.jsph.pl/api/v2/facts/today"
 
 def _load_cached_fact():
     if not CACHE_FILE.exists():
@@ -56,7 +56,7 @@ def get_daily_fact():
             js = js[0]
         
         # Extract fact
-        fact = js.get("fact")
+        fact = js.get("text") or js.get("fact")
         
         if fact:
             # Save to cache
@@ -66,4 +66,4 @@ def get_daily_fact():
         print(f"Error fetching daily fact: {e}")
     
     # Fallback if API fails
-    return "Did you know? Interesting facts coming soon!"
+    return "Some issue loading the fact of the day :("
