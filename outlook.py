@@ -105,11 +105,13 @@ def get_outlook(weather_data):
         )
         outlook = (response.choices[0].message.content or "").strip()
         if outlook:
-            print(f"[Outlook] Generated with Groq ({MODEL})")
+            print(f"Generated weather outlook with Groq ({MODEL})")
+            print(outlook)
             return outlook
-        print("[Outlook] Groq returned no display text")
+        print("Groq returned no display text for weather outlook")
     except Exception as error:
-        print(f"[Outlook] Groq request failed: {error}")
+        print(f"Groq request for weather outlook failed: {error}")
 
-    print("[Outlook] Using fallback")
+    print("Using fallback weather outlook")
+    print(fallback)
     return fallback
