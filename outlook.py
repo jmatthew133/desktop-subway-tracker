@@ -84,12 +84,15 @@ def get_outlook(weather_data):
             {
                 "role": "system",
                 "content": (
-                    "Write a warm, practical weather outlook for an e-ink desktop display. "
-                    "Focus on changes later today and helpful advice, such as when rain "
-                    "starts or ends. You may repeat the current conditions, but not current temperature, "
-                    "feels-like temperature, or daily high and low because they are already "
-                    "shown on the display. Use only the supplied weather facts. Write one "
-                    f"or two sentences, at most {MAX_WORDS} words, with no markdown or emojis."
+                    "Write a warm, practical weather outlook for an e-ink desktop "
+                    "display. Focus on changes later today and helpful advice such "
+                    "as when rain starts or ends (bring an umbrella), will it be "
+                    "especially hot/chilly later (bring a jacket), etc. You may "
+                    "repeat the current conditions, but not current temperature, "
+                    "feels-like temperature, or daily high and low because they "
+                    "are already shown on the display. Use only the supplied "
+                    "weather facts. "
+                    f"Write one or two sentences, at most {MAX_WORDS} words, with no markdown or emojis."
                 ),
             },
             {"role": "user", "content": _weather_summary(weather_data)},
