@@ -83,7 +83,7 @@ def get_outlook(weather_data):
         response = client.chat.completions.create(
             model=MODEL,
             temperature=0.4,
-            max_completion_tokens=80,
+            max_completion_tokens=200,
             messages=[
                 {
                     "role": "system",
@@ -96,10 +96,11 @@ def get_outlook(weather_data):
                 {"role": "user", "content": _weather_summary(weather_data)},
             ],
         )
-        outlook = response.choices[0].message.content.strip()
+        outlook = (response.choices[0].message.content or "").strip()
         if outlook:
             print("[Outlook] Generated with Groq")
             return outlook
+        print("[Outlook] Groq returned no display text")
     except Exception as error:
         print(f"[Outlook] Groq request failed: {error}")
 
