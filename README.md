@@ -9,9 +9,7 @@ Software:
   - spidev
   - nyct-gtfs
   - betterepd7in5 - we are using this instead of the official drivers because they have better support for partial display refreshes
-  - groq - generates the weather outlook
-- Install the display dependencies in the venv:
-  - `python3 -m pip install betterepd7in5 groq`
+  - groq
 
 Running:
 - `python3 main.py`
