@@ -6,7 +6,7 @@ from display import draw_right_half_only
 from subway import get_next_trains, print_train_times
 from bus import get_next_buses, print_bus_times
 from weather import get_weather, print_weather
-from daily_fact import get_daily_fact
+from outlook import get_outlook
 
 Q_STOP = "Q03S" # 72nd St Q Southbound
 Q_LINE = "Q"
@@ -47,8 +47,8 @@ def fetch_transit_data():
 def fetch_weather_data():
     weather_data = get_weather()
     weather_lines = print_weather(weather_data)
-    daily_fact = get_daily_fact()
-    return weather_lines, daily_fact
+    outlook = get_outlook(weather_data)
+    return weather_lines, outlook
 
 
 def main():
@@ -65,7 +65,7 @@ def main():
     # State tracking
     transit_lines = []
     weather_lines = []
-    daily_fact = ""
+    outlook = ""
     
     # Track last update times
     last_transit_update_time = 0
@@ -86,14 +86,14 @@ def main():
                 print(f"  ✗ Transit fetch failed: {e}")
 
             try:
-                weather_lines, daily_fact = fetch_weather_data()
+                weather_lines, outlook = fetch_weather_data()
                 last_weather_update_time = now
             except Exception as e:
                 print(f"  ✗ Weather fetch failed: {e}")
 
             print(f"[{time.strftime('%H:%M:%S')}] Initial full render...")
             draw_weather_and_transit_lines(
-                epd, background, weather_lines, transit_lines, daily_fact
+                epd, background, weather_lines, transit_lines, outlook
             )
             print("  ✓ Display initialized")
             print()
@@ -104,15 +104,15 @@ def main():
             full_refresh_completed = False
 
             if now - last_weather_update_time >= WEATHER_REFRESH_INTERVAL:
-                print(f"[{time.strftime('%H:%M:%S')}] Updating weather and fact...")
+                print(f"[{time.strftime('%H:%M:%S')}] Updating weather and outlook...")
                 try:
-                    weather_lines, daily_fact = fetch_weather_data()
+                    weather_lines, outlook = fetch_weather_data()
                     draw_weather_and_transit_lines(
-                        epd, background, weather_lines, transit_lines, daily_fact
+                        epd, background, weather_lines, transit_lines, outlook
                     )
                     last_weather_update_time = now
                     full_refresh_completed = True
-                    print("  ✓ Weather + fact fetched and full display refreshed")
+                    print("  ✓ Weather + outlook fetched and full display refreshed")
                     print()
                 except Exception as e:
                     print(f"  ✗ Weather fetch failed: {e}")

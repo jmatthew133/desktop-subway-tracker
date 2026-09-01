@@ -55,7 +55,7 @@ def _paste_logo(canvas, top_y=8):
     canvas.paste(logo, (int(x), top_y), mask)
 
 # Draw the entire screen with a full refresh
-def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, daily_fact=""):
+def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlook=""):
     img.paste(255, (0, 0, WIDTH, HEIGHT))
     draw = ImageDraw.Draw(img)
 
@@ -76,16 +76,15 @@ def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, daily
         if y > HEIGHT - 80:  # Leave room for fact at bottom
             break
     
-    # Left: Daily fact (at bottom left)
-    # Fact of the day header (bold with larger font)
+    # Left: Weather outlook (at bottom left)
     header_y = HEIGHT - 135
-    draw.text((left_pad, header_y), "Fact of the day:", font=font_m, fill=0)
+    draw.text((left_pad, header_y), "Outlook:", font=font_m, fill=0)
     
     fact_y = header_y + font_m.size + 6
-    # Wrap fact text to fit left column width (max 5 lines)
+    # Wrap outlook text to fit left column width (max 5 lines)
     left_col_width = int(MID_X - left_pad * 2)
-    wrapped_fact = _wrap_text(daily_fact, font_s, left_col_width, max_lines=5)
-    for line in wrapped_fact:
+    wrapped_outlook = _wrap_text(outlook, font_s, left_col_width, max_lines=5)
+    for line in wrapped_outlook:
         draw.text((left_pad, fact_y), line, font=font_s, fill=0)
         fact_y += (font_s.size + 3)
         if fact_y > HEIGHT - 15:

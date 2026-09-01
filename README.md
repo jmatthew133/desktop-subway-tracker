@@ -5,11 +5,13 @@ Components:
 Software:
 - Running in python3 venv with system-site-packages = true
   - need this for local Raspi install of lgpio
-- Other installs likely needed to venv
+- Other dependencies needed to install to venv
   - spidev
   - nyct-gtfs
-- Install the display driver in the venv:
-  - `python3 -m pip install betterepd7in5` - we are using this instead of the official drivers because it has better support for partial display refreshes
+  - betterepd7in5 - we are using this instead of the official drivers because they have better support for partial display refreshes
+  - groq - generates the weather outlook
+- Install the display dependencies in the venv:
+  - `python3 -m pip install betterepd7in5 groq`
 
 Running:
 - `python3 main.py`

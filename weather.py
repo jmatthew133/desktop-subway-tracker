@@ -30,6 +30,12 @@ def get_weather():
         "longitude": LONG,
         "current": ["temperature_2m", "apparent_temperature", "weather_code"],
         "daily": ["temperature_2m_max", "temperature_2m_min", "weather_code"],
+        "hourly": [
+            "temperature_2m",
+            "precipitation_probability",
+            "precipitation",
+            "weather_code",
+        ],
         "temperature_unit": "fahrenheit",
         "forecast_days": 4,
         "timezone": "America/New_York"
@@ -73,7 +79,12 @@ def get_weather():
             "desc": WEATHER_CODES.get(code, "Unknown"),
         })
 
-    return {"current": current, "forecast": forecast}
+    return {
+        "current": current,
+        "forecast": forecast,
+        "hourly": js.get("hourly", {}),
+        "weather_codes": WEATHER_CODES,
+    }
 
 
 # Weather code map (Open-Meteo standard / WMO codes)
