@@ -4,7 +4,7 @@ from groq import Groq
 from local_config import GROQ_API_KEY
 
 
-MODEL = "openai/gpt-oss-20b"
+MODEL = "groq/compound-mini"
 MAX_WORDS = 40
 
 
@@ -80,25 +80,26 @@ def get_outlook(weather_data):
 
     try:
         client = Groq(api_key=GROQ_API_KEY)
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "Write a practical weather outlook for an e-ink desktop display. "
+                    "Use only the supplied weather facts. Write one or two sentences, "
+                    f"at most {MAX_WORDS} words, with no markdown or emojis."
+                ),
+            },
+            {"role": "user", "content": _weather_summary(weather_data)},
+        ]
         response = client.chat.completions.create(
             model=MODEL,
             temperature=0.4,
             max_completion_tokens=200,
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "Write a practical weather outlook for an e-ink desktop display. "
-                        "Use only the supplied weather facts. Write one or two sentences, "
-                        f"at most {MAX_WORDS} words, with no markdown or emojis."
-                    ),
-                },
-                {"role": "user", "content": _weather_summary(weather_data)},
-            ],
+            messages=messages,
         )
         outlook = (response.choices[0].message.content or "").strip()
         if outlook:
-            print("[Outlook] Generated with Groq")
+            print(f"[Outlook] Generated with Groq ({MODEL})")
             return outlook
         print("[Outlook] Groq returned no display text")
     except Exception as error:
