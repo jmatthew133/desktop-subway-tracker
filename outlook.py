@@ -4,7 +4,7 @@ from groq import Groq
 from local_config import GROQ_API_KEY
 
 
-MODEL = "llama-3.3-70b-versatile"
+MODEL = "openai/gpt-oss-20b"
 MAX_WORDS = 40
 
 
