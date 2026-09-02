@@ -36,6 +36,7 @@ def _remaining_hours(weather_data):
 
 def _weather_summary(weather_data):
     current = weather_data["current"]
+    now = datetime.now()
     remaining_hours = _remaining_hours(weather_data)
     hour_lines = [
         (
@@ -47,6 +48,7 @@ def _weather_summary(weather_data):
     ]
 
     return "\n".join([
+        f"Current local time: {now.strftime('%-I:%M %p')}.",
         f"Current conditions: {current['desc']}, {current['temp']}F (feels {current['feels_like']}F).",
         f"Today's high/low: {current['high']}F / {current['low']}F.",
         "Hourly forecast for the rest of today:",
