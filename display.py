@@ -9,7 +9,7 @@ MID_X = WIDTH / 2
 # Should be pre-installed on raspberry pi os
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 FONT_SIZE = 17
-FONT_S, FONT_M, FONT_L, FONT_XL = 16, 20, 24, 30
+FONT_S, FONT_M, FONT_L, FONT_XL = 16, 20, 24, 32
 
 HERE = Path(__file__).resolve().parent
 MTA_LOGO = HERE / "assets" / "MTA_LOGO.png"
@@ -59,14 +59,14 @@ def _paste_logo(canvas, top_y=8, right_aligned=False):
 
 
 def _draw_right_header(draw, img, time_font, date_font):
-    right_pad = 8
+    right_pad = 24
     top_y = 8
     time_string, date_string = current_date_time_string().split("\n")
     header_x = MID_X + right_pad
     draw.text((header_x, top_y), time_string, font=time_font, fill=0)
     draw.text((header_x, top_y + time_font.size + 2), date_string, font=date_font, fill=0)
     _paste_logo(img, top_y=top_y, right_aligned=True)
-    return top_y + (Image.open(MTA_LOGO).height if MTA_LOGO.exists() else 60) + 10
+    return top_y + (Image.open(MTA_LOGO).height if MTA_LOGO.exists() else 60) + 24
 
 # Draw the entire screen with a full refresh
 def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlook=""):
