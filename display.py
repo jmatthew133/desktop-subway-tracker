@@ -52,7 +52,7 @@ def _paste_logo(canvas, top_y=8, right_aligned=False):
     mask = alpha.point(lambda a: 255 if a > 0 else 0)
     
     if right_aligned:
-        x = WIDTH - 16 - logo.width
+        x = WIDTH - 32 - logo.width
     else:
         x = MID_X + (WIDTH - MID_X - logo.width) // 2
     canvas.paste(logo, (int(x), top_y), mask)
@@ -102,7 +102,7 @@ def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlo
             break
 
     # Right: Timestamp, logo, and transit
-    y = _draw_right_header(draw, img, font_s)
+    y = _draw_right_header(draw, img, font_l)
     right_pad = 32
 
     line_h = font_m.size + 6
@@ -128,7 +128,8 @@ def draw_right_half_only(epd, img, transit_lines):
     draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
     
     # Right: Timestamp, logo, and transit
-    y = _draw_right_header(draw, img, font_s)
+    font_l = ImageFont.truetype(FONT_PATH, FONT_L)
+    y = _draw_right_header(draw, img, font_l)
     right_pad = 32
 
     line_h = font_m.size + 6

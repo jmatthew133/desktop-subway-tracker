@@ -1,5 +1,5 @@
 from nyct_gtfs import NYCTFeed
-from time_util import minutes_until
+from time_util import format_arrival_time, minutes_until
 
 def print_train_times(upcoming_arrivals, line, stop_name):
     output_list = []
@@ -7,7 +7,7 @@ def print_train_times(upcoming_arrivals, line, stop_name):
     print(header_string)
     output_list.append(header_string)
     for a in upcoming_arrivals:
-        at = a["arrival_dt"].astimezone().strftime("%H:%M")
+        at = format_arrival_time(a["arrival_dt"])
         time_string = f"  {a['mins_away']:>3} min @ {at}"
         print(time_string)
         output_list.append(time_string)
