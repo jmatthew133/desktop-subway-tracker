@@ -9,7 +9,7 @@ MID_X = WIDTH / 2
 # Should be pre-installed on raspberry pi os
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 FONT_SIZE = 17
-FONT_S, FONT_M, FONT_L = 16, 20, 24
+FONT_S, FONT_M, FONT_L, FONT_XL = 16, 20, 24, 30
 
 HERE = Path(__file__).resolve().parent
 MTA_LOGO = HERE / "assets" / "MTA_LOGO.png"
@@ -58,10 +58,13 @@ def _paste_logo(canvas, top_y=8, right_aligned=False):
     canvas.paste(logo, (int(x), top_y), mask)
 
 
-def _draw_right_header(draw, img, font):
+def _draw_right_header(draw, img, time_font, date_font):
     right_pad = 8
     top_y = 8
-    draw.text((MID_X + right_pad, top_y), current_date_time_string(), font=font, fill=0)
+    time_string, date_string = current_date_time_string().split("\n")
+    header_x = MID_X + right_pad
+    draw.text((header_x, top_y), time_string, font=time_font, fill=0)
+    draw.text((header_x, top_y + time_font.size + 2), date_string, font=date_font, fill=0)
     _paste_logo(img, top_y=top_y, right_aligned=True)
     return top_y + (Image.open(MTA_LOGO).height if MTA_LOGO.exists() else 60) + 10
 
@@ -73,6 +76,7 @@ def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlo
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)
     font_m = ImageFont.truetype(FONT_PATH, FONT_M)
     font_l = ImageFont.truetype(FONT_PATH, FONT_L)
+    font_xl = ImageFont.truetype(FONT_PATH, FONT_XL)
 
     # Center divider
     draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
@@ -102,7 +106,7 @@ def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlo
             break
 
     # Right: Timestamp, logo, and transit
-    y = _draw_right_header(draw, img, font_l)
+    y = _draw_right_header(draw, img, font_xl, font_m)
     right_pad = 32
 
     line_h = font_m.size + 6
@@ -128,8 +132,8 @@ def draw_right_half_only(epd, img, transit_lines):
     draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
     
     # Right: Timestamp, logo, and transit
-    font_l = ImageFont.truetype(FONT_PATH, FONT_L)
-    y = _draw_right_header(draw, img, font_l)
+    font_xl = ImageFont.truetype(FONT_PATH, FONT_XL)
+    y = _draw_right_header(draw, img, font_xl, font_m)
     right_pad = 32
 
     line_h = font_m.size + 6

@@ -18,7 +18,7 @@ def current_time_string():
 
 def current_date_time_string():
     now = datetime.now()
-    return now.strftime("%m/%d/%y %-I:%M %p")
+    return now.strftime("%-I:%M %p\n%a, %b %-d")
 
 def format_arrival_time(dt):
     return dt.astimezone().strftime("%-I:%M %p")
