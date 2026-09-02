@@ -106,7 +106,7 @@ def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlo
             break
 
     # Right: Timestamp, logo, and transit
-    y = _draw_right_header(draw, img, font_xl, font_m)
+    y = _draw_right_header(draw, img, font_xl, font_l)
     right_pad = 32
 
     line_h = font_m.size + 6
