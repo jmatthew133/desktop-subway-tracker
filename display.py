@@ -9,7 +9,7 @@ MID_X = WIDTH / 2
 # Should be pre-installed on raspberry pi os
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 FONT_SIZE = 17
-FONT_S, FONT_M, FONT_L, FONT_XL = 16, 20, 26, 36
+FONT_S, FONT_M, FONT_L, FONT_XL = 16, 20, 26, 38
 
 HERE = Path(__file__).resolve().parent
 MTA_LOGO = HERE / "assets" / "MTA_LOGO.png"
@@ -132,8 +132,9 @@ def draw_right_half_only(epd, img, transit_lines):
     draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
     
     # Right: Timestamp, logo, and transit
+    font_l = ImageFont.truetype(FONT_PATH, FONT_L)
     font_xl = ImageFont.truetype(FONT_PATH, FONT_XL)
-    y = _draw_right_header(draw, img, font_xl, font_m)
+    y = _draw_right_header(draw, img, font_xl, font_l)
     right_pad = 32
 
     line_h = font_m.size + 6
