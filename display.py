@@ -9,7 +9,7 @@ MID_X = WIDTH / 2
 # Should be pre-installed on raspberry pi os
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 FONT_SIZE = 17
-FONT_S, FONT_M, FONT_L, FONT_XL = 16, 20, 24, 34
+FONT_S, FONT_M, FONT_L, FONT_XL = 16, 20, 26, 36
 
 HERE = Path(__file__).resolve().parent
 MTA_LOGO = HERE / "assets" / "MTA_LOGO.png"
