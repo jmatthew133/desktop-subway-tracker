@@ -18,4 +18,4 @@ def current_time_string():
 
 def current_date_time_string():
     now = datetime.now()
-    return now.strftime("%m/%d/%y %H:%M:%S")
+    return now.strftime("%m/%d/%y %H:%M")

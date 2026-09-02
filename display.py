@@ -42,7 +42,7 @@ def _wrap_text(text, font, max_width, max_lines=3):
     
     return lines
 
-def _paste_logo(canvas, top_y=8):
+def _paste_logo(canvas, top_y=8, right_aligned=False):
     if not MTA_LOGO.exists():
         return
     logo = Image.open(MTA_LOGO).convert("RGBA")
@@ -51,8 +51,19 @@ def _paste_logo(canvas, top_y=8):
     alpha = logo.split()[-1]
     mask = alpha.point(lambda a: 255 if a > 0 else 0)
     
-    x = MID_X + (WIDTH - MID_X - logo.width) // 2
+    if right_aligned:
+        x = WIDTH - 16 - logo.width
+    else:
+        x = MID_X + (WIDTH - MID_X - logo.width) // 2
     canvas.paste(logo, (int(x), top_y), mask)
+
+
+def _draw_right_header(draw, img, font):
+    right_pad = 8
+    top_y = 8
+    draw.text((MID_X + right_pad, top_y), current_date_time_string(), font=font, fill=0)
+    _paste_logo(img, top_y=top_y, right_aligned=True)
+    return top_y + (Image.open(MTA_LOGO).height if MTA_LOGO.exists() else 60) + 10
 
 # Draw the entire screen with a full refresh
 def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlook=""):
@@ -90,10 +101,9 @@ def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlo
         if fact_y > HEIGHT - 15:
             break
 
-    # Right: Transit
-    _paste_logo(img, top_y=8)
+    # Right: Timestamp, logo, and transit
+    y = _draw_right_header(draw, img, font_s)
     right_pad = 32
-    y = 8 + (Image.open(MTA_LOGO).height if MTA_LOGO.exists() else 60) + 10
 
     line_h = font_m.size + 6
     for line in transit_lines:
@@ -101,11 +111,6 @@ def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlo
         y += line_h
         if y > HEIGHT - (font_s.size + 14):
             break
-
-    # Bottom-right: Footer (last updated)
-    stamp = current_date_time_string()
-    draw.text((WIDTH - 8, HEIGHT - 10),
-              stamp, font=font_s, fill=0, anchor="rb")
 
     with epd.display_bilevel_full_refresh() as display:
         display(img)
@@ -122,10 +127,9 @@ def draw_right_half_only(epd, img, transit_lines):
     # Center divider
     draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
     
-    # Right: Transit with logo
-    _paste_logo(img, top_y=8)
+    # Right: Timestamp, logo, and transit
+    y = _draw_right_header(draw, img, font_s)
     right_pad = 32
-    y = 8 + (Image.open(MTA_LOGO).height if MTA_LOGO.exists() else 60) + 10
 
     line_h = font_m.size + 6
     for line in transit_lines:
@@ -134,10 +138,5 @@ def draw_right_half_only(epd, img, transit_lines):
         if y > HEIGHT - (font_s.size + 14):
             break
 
-    # Bottom-right: Footer (last updated)
-    stamp = current_date_time_string()
-    draw.text((WIDTH - 8, HEIGHT - 10),
-              stamp, font=font_s, fill=0, anchor="rb")
-    
     with epd.display_bilevel_partial_refresh() as display:
         display(img)
