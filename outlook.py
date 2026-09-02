@@ -89,7 +89,7 @@ def get_outlook(weather_data):
                     "You are a local NYC meteorologist. Write a warm, practical "
                     "weather outlook for an e-ink desktop display. Focus on "
                     "changes later today and helpful advice such "
-                    "as when rain/snow starts and ends (bring an umbrella), will it "
+                    "as when rain/snow is expected to start and end, will it "
                     "be especially hot or chilly later, etc. You may "
                     "repeat the current conditions, but not current temperature, "
                     "feels-like temperature, or daily high and low because they "
