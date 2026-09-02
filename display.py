@@ -9,7 +9,7 @@ MID_X = WIDTH / 2
 # Should be pre-installed on raspberry pi os
 FONT_PATH = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 FONT_SIZE = 17
-FONT_S, FONT_M, FONT_L, FONT_XL = 16, 20, 24, 32
+FONT_S, FONT_M, FONT_L, FONT_XL = 16, 22, 26, 34
 
 HERE = Path(__file__).resolve().parent
 MTA_LOGO = HERE / "assets" / "MTA_LOGO.png"
@@ -59,7 +59,7 @@ def _paste_logo(canvas, top_y=8, right_aligned=False):
 
 
 def _draw_right_header(draw, img, time_font, date_font):
-    right_pad = 24
+    right_pad = 32
     top_y = 8
     time_string, date_string = current_date_time_string().split("\n")
     header_x = MID_X + right_pad
