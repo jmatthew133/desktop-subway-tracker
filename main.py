@@ -1,5 +1,7 @@
 import time
 import traceback
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from PIL import Image
 from display import init_display, draw_weather_and_transit_lines
 from display import draw_right_half_only
@@ -22,8 +24,17 @@ M31_STOP_NAME = "York Av/E 77 St"
 
 TRANSIT_REFRESH_INTERVAL = 60  # Fast: 60s
 WEATHER_REFRESH_INTERVAL = 3600  # Slow: 60m (3600s)
+NYC_TIMEZONE = ZoneInfo("America/New_York")
 
 WIDTH, HEIGHT = 800, 480
+
+
+def next_minute_boundary(now):
+    return now.replace(second=0, microsecond=0) + timedelta(minutes=1)
+
+
+def next_hour_boundary(now):
+    return now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
 
 
 def fetch_transit_data():
@@ -67,9 +78,9 @@ def main():
     weather_lines = []
     outlook = ""
     
-    # Track last update times
-    last_transit_update_time = 0
-    last_weather_update_time = 0
+    # Schedule refreshes against wall-clock boundaries, not startup time.
+    next_transit_refresh = None
+    next_weather_refresh = None
     first_run = True
     
     try:
@@ -78,16 +89,13 @@ def main():
         print()
         
         while first_run:
-            now = time.monotonic()
             try:
                 transit_lines = fetch_transit_data()
-                last_transit_update_time = now
             except Exception as e:
                 print(f"  ✗ Transit fetch failed: {e}")
 
             try:
                 weather_lines, outlook = fetch_weather_data()
-                last_weather_update_time = now
             except Exception as e:
                 print(f"  ✗ Weather fetch failed: {e}")
 
@@ -97,36 +105,41 @@ def main():
             )
             print("  ✓ Display initialized")
             print()
+            now = datetime.now(NYC_TIMEZONE)
+            next_transit_refresh = next_minute_boundary(now)
+            next_weather_refresh = next_hour_boundary(now)
             first_run = False
 
         while True:
-            now = time.monotonic()
+            now = datetime.now(NYC_TIMEZONE)
             full_refresh_completed = False
 
-            if now - last_weather_update_time >= WEATHER_REFRESH_INTERVAL:
-                print(f"[{time.strftime('%H:%M:%S')}] Updating weather and outlook...")
+            if now >= next_weather_refresh:
+                print(f"[{time.strftime('%H:%M:%S')}] Updating weather, outlook, and transit...")
                 try:
                     weather_lines, outlook = fetch_weather_data()
+                    transit_lines = fetch_transit_data()
                     draw_weather_and_transit_lines(
                         epd, background, weather_lines, transit_lines, outlook
                     )
-                    last_weather_update_time = now
+                    next_weather_refresh = next_hour_boundary(now)
+                    next_transit_refresh = next_minute_boundary(now)
                     full_refresh_completed = True
-                    print("  ✓ Weather + outlook fetched and full display refreshed")
+                    print("  ✓ Weather, outlook, and transit fetched and full display refreshed")
                     print()
                 except Exception as e:
-                    print(f"  ✗ Weather fetch failed: {e}")
+                    print(f"  ✗ Hourly full refresh failed: {e}")
                     print()
 
             if (
                 not full_refresh_completed
-                and now - last_transit_update_time >= TRANSIT_REFRESH_INTERVAL
+                and now >= next_transit_refresh
             ):
                 print(f"[{time.strftime('%H:%M:%S')}] Updating transit...")
                 try:
                     transit_lines = fetch_transit_data()
                     draw_right_half_only(epd, background, transit_lines)
-                    last_transit_update_time = now
+                    next_transit_refresh = next_minute_boundary(now)
                     print("  ✓ Transit data fetched and displayed")
                     print()
                 except Exception as e:
