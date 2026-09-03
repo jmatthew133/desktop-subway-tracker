@@ -5,7 +5,7 @@ from local_config import GROQ_API_KEY
 
 
 MODEL = "groq/compound-mini"
-MAX_WORDS = 40
+MAX_WORDS = 35
 
 
 def _remaining_hours(weather_data):
