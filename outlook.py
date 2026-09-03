@@ -5,7 +5,7 @@ from local_config import GROQ_API_KEY
 
 
 MODEL = "groq/compound-mini"
-MAX_WORDS = 35
+MAX_WORDS = 32
 
 
 def _remaining_hours(weather_data):
@@ -77,7 +77,7 @@ def _fallback_outlook(weather_data):
 def get_outlook(weather_data):
     fallback = _fallback_outlook(weather_data)
     if not GROQ_API_KEY:
-        print("[Outlook] GROQ_API_KEY is not configured; using fallback")
+        print("GROQ_API_KEY is not configured; using fallback")
         return fallback
 
     try:
