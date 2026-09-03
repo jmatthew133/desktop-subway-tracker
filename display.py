@@ -93,7 +93,7 @@ def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlo
     
     # Left: Weather outlook (at bottom left)
     header_y = HEIGHT - 135
-    draw.text((left_pad, header_y), "Outlook:", font=font_m, fill=0)
+    draw.text((left_pad, header_y), "Today's Outlook:", font=font_m, fill=0)
     
     fact_y = header_y + font_m.size + 6
     # Wrap outlook text to fit left column width (max 5 lines)
