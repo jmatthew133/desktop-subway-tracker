@@ -22,3 +22,14 @@ def current_date_time_string():
 
 def format_arrival_time(dt):
     return dt.astimezone().strftime("%-I:%M %p")
+
+def minutes_ago_string(reference_dt):
+    if reference_dt is None:
+        return "Not yet updated"
+    now = datetime.now(reference_dt.tzinfo) if reference_dt.tzinfo else datetime.now()
+    elapsed_minutes = int((now - reference_dt).total_seconds() // 60)
+    if elapsed_minutes <= 0:
+        return "Updated just now"
+    if elapsed_minutes == 1:
+        return "Updated 1 min ago"
+    return f"Updated {elapsed_minutes} min ago"

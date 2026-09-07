@@ -1,6 +1,6 @@
 import betterepd7in5
 from PIL import Image, ImageDraw, ImageFont
-from time_util import current_date_time_string
+from time_util import current_date_time_string, minutes_ago_string
 from pathlib import Path
 from weather_icons import draw_weather_icon
 
@@ -199,8 +199,12 @@ def _draw_right_header(draw, img, time_font, date_font):
     _paste_logo(img, top_y=top_y, right_aligned=True)
     return top_y + (Image.open(MTA_LOGO).height if MTA_LOGO.exists() else 60) + TOP_TRANSIT_BUFFER
 
+def _draw_last_updated(draw, font_s, last_transit_update):
+    text = minutes_ago_string(last_transit_update)
+    draw.text((WIDTH - 8, HEIGHT - 8), text, font=font_s, fill=0, anchor="rb")
+
 # Draw the entire screen with a full refresh
-def draw_weather_and_transit_lines(epd, img, weather_data, transit_lines, outlook=""):
+def draw_weather_and_transit_lines(epd, img, weather_data, transit_lines, outlook="", last_transit_update=None):
     img.paste(255, (0, 0, WIDTH, HEIGHT))
     draw = ImageDraw.Draw(img)
 
@@ -245,11 +249,13 @@ def draw_weather_and_transit_lines(epd, img, weather_data, transit_lines, outloo
         if y > HEIGHT - (font_s.size + 14):
             break
 
+    _draw_last_updated(draw, font_s, last_transit_update)
+
     with epd.display_bilevel_full_refresh() as display:
         display(img)
 
 # Draw only the right half of the display with a partial refresh, for updating transit info which changes often
-def draw_right_half_only(epd, img, transit_lines):
+def draw_right_half_only(epd, img, transit_lines, last_transit_update=None):
     draw = ImageDraw.Draw(img)
     font_s = ImageFont.truetype(FONT_PATH, FONT_S)
     font_m = ImageFont.truetype(FONT_PATH, FONT_M)
@@ -271,6 +277,8 @@ def draw_right_half_only(epd, img, transit_lines):
         y = _draw_transit_group(draw, MID_X + right_pad, y, group, font_m, line_h)
         if y > HEIGHT - (font_s.size + 14):
             break
+
+    _draw_last_updated(draw, font_s, last_transit_update)
 
     with epd.display_bilevel_partial_refresh() as display:
         display(img)

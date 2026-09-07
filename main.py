@@ -83,6 +83,7 @@ def main():
     transit_lines = []
     weather_data = {}
     outlook = ""
+    last_transit_update = None
     
     # Schedule refreshes against wall-clock boundaries, not startup time.
     next_transit_refresh = None
@@ -97,6 +98,7 @@ def main():
         while first_run:
             try:
                 transit_lines = fetch_transit_data()
+                last_transit_update = datetime.now(NYC_TIMEZONE)
             except Exception as e:
                 print(f"  ✗ Transit fetch failed: {e}")
 
@@ -107,7 +109,7 @@ def main():
 
             print(f"[{time.strftime('%H:%M:%S')}] Initial full render...")
             draw_weather_and_transit_lines(
-                epd, background, weather_data, transit_lines, outlook
+                epd, background, weather_data, transit_lines, outlook, last_transit_update
             )
             print("  ✓ Display initialized")
             print()
@@ -125,8 +127,9 @@ def main():
                 try:
                     weather_data, outlook = fetch_weather_data()
                     transit_lines = fetch_transit_data()
+                    last_transit_update = datetime.now(NYC_TIMEZONE)
                     draw_weather_and_transit_lines(
-                        epd, background, weather_data, transit_lines, outlook
+                        epd, background, weather_data, transit_lines, outlook, last_transit_update
                     )
                     next_weather_refresh = next_hour_boundary(now)
                     next_transit_refresh = next_minute_boundary(now)
@@ -144,7 +147,8 @@ def main():
                 print(f"[{time.strftime('%H:%M:%S')}] Updating transit...")
                 try:
                     transit_lines = fetch_transit_data()
-                    draw_right_half_only(epd, background, transit_lines)
+                    last_transit_update = datetime.now(NYC_TIMEZONE)
+                    draw_right_half_only(epd, background, transit_lines, last_transit_update)
                     next_transit_refresh = next_minute_boundary(now)
                     print("  ✓ Transit data fetched and displayed")
                     print()
