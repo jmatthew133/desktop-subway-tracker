@@ -29,7 +29,7 @@ def minutes_ago_string(reference_dt):
     now = datetime.now(reference_dt.tzinfo) if reference_dt.tzinfo else datetime.now()
     elapsed_minutes = int((now - reference_dt).total_seconds() // 60)
     if elapsed_minutes <= 0:
-        return "Updated just now"
+        return "Updated <1 min ago"
     if elapsed_minutes == 1:
         return "Updated 1 min ago"
     return f"Updated {elapsed_minutes} min ago"
