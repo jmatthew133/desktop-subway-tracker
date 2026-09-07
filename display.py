@@ -32,12 +32,13 @@ TOP_TRANSIT_BUFFER = 44
 
 # Weather icon column sized independently from the transit bullet column (per design decision).
 WEATHER_ICON_COLUMN_WIDTH = 64
-WEATHER_ICON_TEXT_GAP = 16
+WEATHER_HERO_TEXT_GAP = 28
+WEATHER_DAILY_TEXT_GAP = 18
 WEATHER_HERO_ICON_SIZE = 90
-WEATHER_DAILY_ICON_SIZE = 44
-WEATHER_HERO_GAP = 20
-WEATHER_DAILY_ROW_HEIGHT = 52
-WEATHER_DAILY_ROW_GAP = 10
+WEATHER_DAILY_ICON_SIZE = 52
+WEATHER_HERO_GAP = 16
+WEATHER_DAILY_ROW_HEIGHT = 60
+WEATHER_DAILY_ROW_GAP = 8
 
 def init_display():
     return betterepd7in5.EPD(betterepd7in5.RaspberryPi())
@@ -115,31 +116,37 @@ def _draw_line_bullet(draw, cx, cy, label, diameter):
     font = _fit_bold_font(draw, label, diameter * 0.62)
     _draw_optically_centered_text(draw, cx, cy, label, font, fill=255)
 
-def _draw_weather_hero(draw, x, y, today, font_m):
-    line_h = font_m.size + 8
-    block_height = max(WEATHER_HERO_ICON_SIZE, line_h * 2)
+def _draw_weather_hero(draw, x, y, today, font_l):
+    line_h = font_l.size + 6
+    lines = [
+        f"{today['temp']}°F (feels {today['feels_like']}°F)",
+        f"Precip: {today['precip_chance']}%",
+        f"H:{today['high']}°  L:{today['low']}°",
+    ]
+    block_height = max(WEATHER_HERO_ICON_SIZE, len(lines) * line_h)
     center_x = x + WEATHER_ICON_COLUMN_WIDTH / 2
     center_y = y + block_height / 2
     draw_weather_icon(draw, center_x, center_y, WEATHER_HERO_ICON_SIZE, today["icon"])
 
-    text_x = x + WEATHER_ICON_COLUMN_WIDTH + WEATHER_ICON_TEXT_GAP
-    text_y = center_y - line_h
-    draw.text((text_x, text_y), f"{today['temp']}°F (feels {today['feels_like']}°F)", font=font_m, fill=0)
-    draw.text((text_x, text_y + line_h), f"H:{today['high']}°  L:{today['low']}°", font=font_m, fill=0)
+    text_x = x + WEATHER_ICON_COLUMN_WIDTH + WEATHER_HERO_TEXT_GAP
+    ty = y
+    for line in lines:
+        draw.text((text_x, ty), line, font=font_l, fill=0)
+        ty += line_h
 
     return y + block_height
 
-def _draw_weather_forecast_row(draw, x, y, day, font_m):
+def _draw_weather_forecast_row(draw, x, y, day, font_l):
     row_height = WEATHER_DAILY_ROW_HEIGHT
     center_x = x + WEATHER_ICON_COLUMN_WIDTH / 2
     center_y = y + row_height / 2
     draw_weather_icon(draw, center_x, center_y, WEATHER_DAILY_ICON_SIZE, day["icon"])
 
-    text_x = x + WEATHER_ICON_COLUMN_WIDTH + WEATHER_ICON_TEXT_GAP
+    text_x = x + WEATHER_ICON_COLUMN_WIDTH + WEATHER_DAILY_TEXT_GAP
     label = f"{day['day']}   {day['high']}° / {day['low']}°"
-    bbox = draw.textbbox((0, 0), label, font=font_m)
+    bbox = draw.textbbox((0, 0), label, font=font_l)
     text_y = center_y - (bbox[3] - bbox[1]) / 2 - bbox[1]
-    draw.text((text_x, text_y), label, font=font_m, fill=0)
+    draw.text((text_x, text_y), label, font=font_l, fill=0)
 
     return y + row_height + WEATHER_DAILY_ROW_GAP
 
@@ -209,10 +216,10 @@ def draw_weather_and_transit_lines(epd, img, weather_data, transit_lines, outloo
     left_pad = 16
     y = 16
     if weather_data:
-        y = _draw_weather_hero(draw, left_pad, y, weather_data["today"], font_m)
+        y = _draw_weather_hero(draw, left_pad, y, weather_data["today"], font_l)
         y += WEATHER_HERO_GAP
         for day in weather_data["forecast"]:
-            y = _draw_weather_forecast_row(draw, left_pad, y, day, font_m)
+            y = _draw_weather_forecast_row(draw, left_pad, y, day, font_l)
 
     # Left: Weather outlook (at bottom left)
     header_y = HEIGHT - 135

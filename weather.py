@@ -13,6 +13,7 @@ def print_weather(forecast):
         "feels_like": current["feels_like"],
         "high": current["high"],
         "low": current["low"],
+        "precip_chance": current["precip_chance"],
         "desc": current["desc"],
         "icon": current["icon"],
     }
@@ -35,7 +36,7 @@ def get_weather():
         "latitude": LAT,
         "longitude": LONG,
         "current": ["temperature_2m", "apparent_temperature", "weather_code"],
-        "daily": ["temperature_2m_max", "temperature_2m_min", "weather_code"],
+        "daily": ["temperature_2m_max", "temperature_2m_min", "weather_code", "precipitation_probability_max"],
         "hourly": [
             "temperature_2m",
             "precipitation_probability",
@@ -58,6 +59,7 @@ def get_weather():
     current_raw = js.get("current", {})
     today_high = round(daily.get("temperature_2m_max", [])[0]) if daily.get("temperature_2m_max", []) else 0
     today_low = round(daily.get("temperature_2m_min", [])[0]) if daily.get("temperature_2m_min", []) else 0
+    today_precip_chance = round(daily.get("precipitation_probability_max", [])[0]) if daily.get("precipitation_probability_max", []) else 0
     
     current = {
         "temp": round(current_raw.get("temperature_2m", 0)),
@@ -67,6 +69,7 @@ def get_weather():
         "icon": WEATHER_ICON_KEYS.get(current_raw.get("weather_code", 0), "cloudy"),
         "high": today_high,
         "low": today_low,
+        "precip_chance": today_precip_chance,
     }
     
     # Parse 3-day forecast (excluding today)
