@@ -1,5 +1,7 @@
 import time
 import traceback
+import signal
+import sys
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from PIL import Image
@@ -37,6 +39,13 @@ def next_hour_boundary(now):
     return now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
 
 
+def _handle_sigterm(signum, frame):
+    # systemctl stop/restart and reboot send SIGTERM. Python only auto-converts SIGINT into
+    # KeyboardInterrupt, so without this, SIGTERM would kill the process before the finally
+    # block below could clear/sleep the e-ink display.
+    raise KeyboardInterrupt()
+
+
 def fetch_transit_data():
     upcoming_q_trains = get_next_trains(Q_LINE, Q_STOP, 3)
     q_group = print_train_times(upcoming_q_trains, Q_LINE, Q_STOP_NAME)
@@ -63,7 +72,9 @@ def main():
     - Transit: partial refresh every TRANSIT_REFRESH_INTERVAL seconds
     - Weather + fact: full refresh every WEATHER_REFRESH_INTERVAL seconds
     """
+    signal.signal(signal.SIGTERM, _handle_sigterm)
     epd = init_display()
+    exit_code = 0
     
     # Shared background image (persistent across refreshes)
     background = Image.new("1", (WIDTH, HEIGHT), 255)
@@ -145,10 +156,12 @@ def main():
             
     except KeyboardInterrupt:
         print("\n\nInterrupted by user")
+        exit_code = 0
     except Exception as e:
         print(f"\nEncountered error during execution")
         print(f"Error: {e}")
         traceback.print_exc()
+        exit_code = 1
     finally:
         print("Clearing display before shutdown...")
         try:
@@ -157,6 +170,8 @@ def main():
         except Exception as e:
             print(f"  ✗ Display cleanup failed: {e}")
         print("Display stopped")
-            
+
+    sys.exit(exit_code)
+
 if __name__ == "__main__":
     main()

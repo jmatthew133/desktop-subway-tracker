@@ -13,3 +13,13 @@ Software:
 
 Running:
 - `python3 main.py`
+
+Running as a service (boot-time autostart, no SSH/manual start needed):
+- Not committed to this repo — the unit file needs a machine-specific deployment path, so it's created directly on the Pi rather than checked in.
+- Uses a **systemd user unit** (`~/.config/systemd/user/subway-tracker.service`), pointing `WorkingDirectory=`/`ExecStart=` at wherever this repo + its venv live, with `Restart=on-failure` for crash recovery.
+- User units need `sudo loginctl enable-linger <user>` once so they start at boot without a login session.
+- Logs: `journalctl --user -u subway-tracker.service -f`. Stop/restart: `systemctl --user stop|restart subway-tracker.service` (the app catches `SIGTERM` and clears/sleeps the e-ink display before exiting, same as `Ctrl+C`).
+
+
+
+
