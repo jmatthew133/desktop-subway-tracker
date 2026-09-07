@@ -25,9 +25,9 @@ FONT_PATH_BOLD_CANDIDATES = [
 # Left column reserved for the bullet/label of each transit group; arrival times start after it.
 GROUP_LABEL_WIDTH = 80
 GROUP_TIMES_GAP = 28
-GROUP_GAP = 32
+GROUP_GAP = 20
 BULLET_SIZE_RATIO = 0.75
-TOP_TRANSIT_BUFFER = 48
+TOP_TRANSIT_BUFFER = 32
 
 def init_display():
     return betterepd7in5.EPD(betterepd7in5.RaspberryPi())
@@ -195,7 +195,7 @@ def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlo
     y = _draw_right_header(draw, img, font_xl, font_l)
     right_pad = 32
 
-    line_h = font_m.size + 14
+    line_h = font_m.size + 10
     for group in transit_lines:
         y = _draw_transit_group(draw, MID_X + right_pad, y, group, font_m, line_h)
         if y > HEIGHT - (font_s.size + 14):
@@ -222,7 +222,7 @@ def draw_right_half_only(epd, img, transit_lines):
     y = _draw_right_header(draw, img, font_xl, font_l)
     right_pad = 32
 
-    line_h = font_m.size + 14
+    line_h = font_m.size + 10
     for group in transit_lines:
         y = _draw_transit_group(draw, MID_X + right_pad, y, group, font_m, line_h)
         if y > HEIGHT - (font_s.size + 14):
