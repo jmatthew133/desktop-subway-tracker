@@ -14,22 +14,31 @@ FONT_S, FONT_M, FONT_L, FONT_XL = 16, 20, 26, 38
 HERE = Path(__file__).resolve().parent
 MTA_LOGO = HERE / "assets" / "MTA_LOGO.png"
 
-FONT_PATH_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+# Nimbus Sans is metric-compatible with Helvetica (the real MTA bullet typeface) and looks far
+# closer than DejaVu; install via `apt install fonts-urw-base35` on Raspberry Pi OS. Falls back
+# to DejaVu Bold, then DejaVu Regular, if unavailable.
+FONT_PATH_BOLD_CANDIDATES = [
+    "/usr/share/fonts/opentype/urw-base35/NimbusSans-Bold.otf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+]
 
 # Left column reserved for the bullet/label of each transit group; arrival times start after it.
-GROUP_LABEL_WIDTH = 56
-GROUP_TIMES_GAP = 12
-GROUP_GAP = 14
+GROUP_LABEL_WIDTH = 80
+GROUP_TIMES_GAP = 28
+GROUP_GAP = 32
 BULLET_SIZE_RATIO = 0.75
+TOP_TRANSIT_BUFFER = 48
 
 def init_display():
     return betterepd7in5.EPD(betterepd7in5.RaspberryPi())
 
 def _load_bold_font(size):
-    try:
-        return ImageFont.truetype(FONT_PATH_BOLD, size)
-    except OSError:
-        return ImageFont.truetype(FONT_PATH, size)
+    for path in FONT_PATH_BOLD_CANDIDATES:
+        try:
+            return ImageFont.truetype(path, size)
+        except OSError:
+            continue
+    return ImageFont.truetype(FONT_PATH, size)
 
 def _wrap_text(text, font, max_width, max_lines=3):
     words = text.split()
@@ -107,7 +116,7 @@ def _draw_transit_group(draw, x, y, group, font_m, line_h):
         _draw_line_bullet(draw, center_x, center_y, group["label"], diameter)
     else:
         font = _fit_bold_font_by_width(
-            draw, group["label"], GROUP_LABEL_WIDTH - 6, max_height=block_height * BULLET_SIZE_RATIO
+            draw, group["label"], GROUP_LABEL_WIDTH - 10, max_height=block_height * 0.85
         )
         _draw_optically_centered_text(draw, center_x, center_y, group["label"], font, fill=0)
 
@@ -143,7 +152,7 @@ def _draw_right_header(draw, img, time_font, date_font):
     draw.text((header_x, top_y), time_string, font=time_font, fill=0)
     draw.text((header_x, top_y + time_font.size + 2), date_string, font=date_font, fill=0)
     _paste_logo(img, top_y=top_y, right_aligned=True)
-    return top_y + (Image.open(MTA_LOGO).height if MTA_LOGO.exists() else 60) + 24
+    return top_y + (Image.open(MTA_LOGO).height if MTA_LOGO.exists() else 60) + TOP_TRANSIT_BUFFER
 
 # Draw the entire screen with a full refresh
 def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlook=""):
@@ -186,7 +195,7 @@ def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlo
     y = _draw_right_header(draw, img, font_xl, font_l)
     right_pad = 32
 
-    line_h = font_m.size + 6
+    line_h = font_m.size + 14
     for group in transit_lines:
         y = _draw_transit_group(draw, MID_X + right_pad, y, group, font_m, line_h)
         if y > HEIGHT - (font_s.size + 14):
@@ -213,7 +222,7 @@ def draw_right_half_only(epd, img, transit_lines):
     y = _draw_right_header(draw, img, font_xl, font_l)
     right_pad = 32
 
-    line_h = font_m.size + 6
+    line_h = font_m.size + 14
     for group in transit_lines:
         y = _draw_transit_group(draw, MID_X + right_pad, y, group, font_m, line_h)
         if y > HEIGHT - (font_s.size + 14):
