@@ -38,21 +38,16 @@ def next_hour_boundary(now):
 
 
 def fetch_transit_data():
-    transit_lines = []
-    
     upcoming_q_trains = get_next_trains(Q_LINE, Q_STOP, 3)
-    q_times = print_train_times(upcoming_q_trains, Q_LINE, Q_STOP_NAME)
-    transit_lines += q_times
-    
+    q_group = print_train_times(upcoming_q_trains, Q_LINE, Q_STOP_NAME)
+
     upcoming_6_trains = get_next_trains(SIX_LINE, SIX_STOP, 3)
-    six_times = print_train_times(upcoming_6_trains, SIX_LINE, SIX_STOP_NAME)
-    transit_lines += six_times
-    
+    six_group = print_train_times(upcoming_6_trains, SIX_LINE, SIX_STOP_NAME)
+
     upcoming_m31_buses = get_next_buses(M31_STOP_ID, 3)
-    bus_times = print_bus_times(upcoming_m31_buses, M31_LINE, M31_STOP_NAME)
-    transit_lines += bus_times
-    
-    return transit_lines
+    bus_group = print_bus_times(upcoming_m31_buses, M31_LINE, M31_STOP_NAME)
+
+    return [q_group, six_group, bus_group]
 
 
 def fetch_weather_data():

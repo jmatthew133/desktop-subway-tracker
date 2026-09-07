@@ -14,11 +14,24 @@ FONT_S, FONT_M, FONT_L, FONT_XL = 16, 20, 26, 38
 HERE = Path(__file__).resolve().parent
 MTA_LOGO = HERE / "assets" / "MTA_LOGO.png"
 
+FONT_PATH_BOLD = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+
+# Left column reserved for the bullet/label of each transit group; arrival times start after it.
+GROUP_LABEL_WIDTH = 56
+GROUP_TIMES_GAP = 12
+GROUP_GAP = 14
+BULLET_SIZE_RATIO = 0.75
+
 def init_display():
     return betterepd7in5.EPD(betterepd7in5.RaspberryPi())
 
+def _load_bold_font(size):
+    try:
+        return ImageFont.truetype(FONT_PATH_BOLD, size)
+    except OSError:
+        return ImageFont.truetype(FONT_PATH, size)
+
 def _wrap_text(text, font, max_width, max_lines=3):
-    """Wrap text to fit within max_width pixels. Returns list of lines, truncated to max_lines."""
     words = text.split()
     lines = []
     current_line = []
@@ -41,6 +54,70 @@ def _wrap_text(text, font, max_width, max_lines=3):
         lines.append(" ".join(current_line))
     
     return lines
+
+def _draw_optically_centered_text(draw, cx, cy, label, font, fill):
+    bbox = draw.textbbox((0, 0), label, font=font)
+    w, h = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    x = cx - w / 2 - bbox[0]
+    y = cy - h / 2 - bbox[1]
+    draw.text((x, y), label, font=font, fill=fill)
+
+def _fit_bold_font(draw, label, target_height):
+    size = max(4, int(target_height))
+    for _ in range(8):
+        font = _load_bold_font(size)
+        bbox = draw.textbbox((0, 0), label, font=font)
+        height = bbox[3] - bbox[1]
+        if height <= 0 or abs(height - target_height) < 1:
+            break
+        size = max(4, int(size * (target_height / height)))
+    return font
+
+def _fit_bold_font_by_width(draw, label, target_width, max_height=None):
+    size = max(4, int(target_width))
+    for _ in range(8):
+        font = _load_bold_font(size)
+        bbox = draw.textbbox((0, 0), label, font=font)
+        width = bbox[2] - bbox[0]
+        if width <= 0 or abs(width - target_width) < 1:
+            break
+        size = max(4, int(size * (target_width / width)))
+    if max_height is not None:
+        bbox = draw.textbbox((0, 0), label, font=font)
+        height = bbox[3] - bbox[1]
+        if height > max_height:
+            size = max(4, int(size * (max_height / height)))
+            font = _load_bold_font(size)
+    return font
+
+def _draw_line_bullet(draw, cx, cy, label, diameter):
+    r = diameter / 2
+    draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=0)
+    font = _fit_bold_font(draw, label, diameter * 0.62)
+    _draw_optically_centered_text(draw, cx, cy, label, font, fill=255)
+
+def _draw_transit_group(draw, x, y, group, font_m, line_h):
+    times = group["times"] or ["No data"]
+    block_height = len(times) * line_h
+    center_x = x + GROUP_LABEL_WIDTH / 2
+    center_y = y + block_height / 2
+
+    if group["kind"] == "bullet":
+        diameter = block_height * BULLET_SIZE_RATIO
+        _draw_line_bullet(draw, center_x, center_y, group["label"], diameter)
+    else:
+        font = _fit_bold_font_by_width(
+            draw, group["label"], GROUP_LABEL_WIDTH - 6, max_height=block_height * BULLET_SIZE_RATIO
+        )
+        _draw_optically_centered_text(draw, center_x, center_y, group["label"], font, fill=0)
+
+    times_x = x + GROUP_LABEL_WIDTH + GROUP_TIMES_GAP
+    ty = y
+    for line in times:
+        draw.text((times_x, ty), line, font=font_m, fill=0)
+        ty += line_h
+
+    return y + block_height + GROUP_GAP
 
 def _paste_logo(canvas, top_y=8, right_aligned=False):
     if not MTA_LOGO.exists():
@@ -110,9 +187,8 @@ def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlo
     right_pad = 32
 
     line_h = font_m.size + 6
-    for line in transit_lines:
-        draw.text((MID_X + right_pad, y), line, font=font_m, fill=0)
-        y += line_h
+    for group in transit_lines:
+        y = _draw_transit_group(draw, MID_X + right_pad, y, group, font_m, line_h)
         if y > HEIGHT - (font_s.size + 14):
             break
 
@@ -138,9 +214,8 @@ def draw_right_half_only(epd, img, transit_lines):
     right_pad = 32
 
     line_h = font_m.size + 6
-    for line in transit_lines:
-        draw.text((MID_X + right_pad, y), line, font=font_m, fill=0)
-        y += line_h
+    for group in transit_lines:
+        y = _draw_transit_group(draw, MID_X + right_pad, y, group, font_m, line_h)
         if y > HEIGHT - (font_s.size + 14):
             break
 

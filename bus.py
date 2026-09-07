@@ -5,17 +5,14 @@ from local_config import BUS_API_KEY # API key is in a local file that is gitign
 URL = "https://bustime.mta.info/api/siri/stop-monitoring.json"
 
 def print_bus_times(upcoming_arrivals, line, stop_name):
-    output_list = []
-    header_string = f"{line} buses from {stop_name}:"
-    print(header_string)
-    output_list.append(header_string)
+    print(f"{line} buses from {stop_name}:")
+    times = []
     for a in upcoming_arrivals:
         at = format_arrival_time(a["arrival_dt"])
-        time_string = f"  {a['mins_away']:>3} min @ {at}"
-        print(time_string)
-        output_list.append(time_string)
-    output_list.append("")
-    return output_list    
+        time_string = f"{a['mins_away']:>3} min @ {at}"
+        print(f"  {time_string}")
+        times.append(time_string)
+    return {"label": line, "kind": "text", "times": times}
     
 
 def get_next_buses(stop_id: str, limit: int = 3):
