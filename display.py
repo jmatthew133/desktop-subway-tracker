@@ -27,7 +27,7 @@ GROUP_LABEL_WIDTH = 80
 GROUP_TIMES_GAP = 28
 GROUP_GAP = 20
 BULLET_SIZE_RATIO = 0.75
-TOP_TRANSIT_BUFFER = 32
+TOP_TRANSIT_BUFFER = 44
 
 def init_display():
     return betterepd7in5.EPD(betterepd7in5.RaspberryPi())
