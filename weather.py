@@ -5,24 +5,30 @@ from local_config import LAT, LONG # Lat and Long are in a local file that is gi
 URL = "https://api.open-meteo.com/v1/forecast"
 
 def print_weather(forecast):
-    output_list = []
-    day_string = "Today: "
-    weather_desc = f"{forecast['current']['desc']}, {forecast['current']['temp']}°F (feels {forecast['current']['feels_like']}°F)"
-    temps_string = f"High/Low: {forecast['current']['high']}° / {forecast['current']['low']}°"
-    print(day_string + weather_desc)
-    print(temps_string)
-    output_list.append(day_string)
-    output_list.append(weather_desc)
-    output_list.append(temps_string)
-    output_list.append("")
-    for d in forecast['forecast']:
-        day_string = f"{d['day']}: "
-        weather_string = f"{d['desc']} — {d['high']}° / {d['low']}°"
-        print(day_string + weather_string)
-        output_list.append(day_string)
-        output_list.append(weather_string)
-        output_list.append("")
-    return output_list
+    current = forecast["current"]
+    print(f"Today: {current['desc']}, {current['temp']}°F (feels {current['feels_like']}°F)")
+    print(f"High/Low: {current['high']}° / {current['low']}°")
+    today = {
+        "temp": current["temp"],
+        "feels_like": current["feels_like"],
+        "high": current["high"],
+        "low": current["low"],
+        "desc": current["desc"],
+        "icon": current["icon"],
+    }
+
+    days = []
+    for d in forecast["forecast"]:
+        print(f"{d['day']}: {d['desc']} — {d['high']}° / {d['low']}°")
+        days.append({
+            "day": d["day"],
+            "high": d["high"],
+            "low": d["low"],
+            "desc": d["desc"],
+            "icon": d["icon"],
+        })
+
+    return {"today": today, "forecast": days}
 
 def get_weather():
     params = {
@@ -58,6 +64,7 @@ def get_weather():
         "feels_like": round(current_raw.get("apparent_temperature", 0)),
         "code": current_raw.get("weather_code", 0),
         "desc": WEATHER_CODES.get(current_raw.get("weather_code", 0), "Unknown"),
+        "icon": WEATHER_ICON_KEYS.get(current_raw.get("weather_code", 0), "cloudy"),
         "high": today_high,
         "low": today_low,
     }
@@ -77,6 +84,7 @@ def get_weather():
             "low": round(low),
             "code": code,
             "desc": WEATHER_CODES.get(code, "Unknown"),
+            "icon": WEATHER_ICON_KEYS.get(code, "cloudy"),
         })
 
     return {
@@ -112,4 +120,32 @@ WEATHER_CODES = {
     95: "Thunderstorm",
     96: "Thunderstorm with hail",
     99: "Thunderstorm with heavy hail",
+}
+
+# WMO code -> weather_icons.py icon key. Kept separate from the font-specific glyph
+# lookup in weather_icons.py so the icon *set* can be swapped without touching this mapping.
+WEATHER_ICON_KEYS = {
+    0: "clear",
+    1: "clear",
+    2: "partly_cloudy",
+    3: "cloudy",
+    45: "fog",
+    48: "fog",
+    51: "drizzle",
+    53: "drizzle",
+    55: "drizzle",
+    61: "rain",
+    63: "rain",
+    65: "rain",
+    71: "snow",
+    73: "snow",
+    75: "snow",
+    80: "showers",
+    81: "showers",
+    82: "showers",
+    85: "snow",
+    86: "snow",
+    95: "thunderstorm",
+    96: "thunderstorm",
+    99: "thunderstorm",
 }

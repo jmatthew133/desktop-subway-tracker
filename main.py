@@ -51,10 +51,10 @@ def fetch_transit_data():
 
 
 def fetch_weather_data():
-    weather_data = get_weather()
-    weather_lines = print_weather(weather_data)
-    outlook = get_outlook(weather_data)
-    return weather_lines, outlook
+    weather_json = get_weather()
+    weather_data = print_weather(weather_json)
+    outlook = get_outlook(weather_json)
+    return weather_data, outlook
 
 
 def main():
@@ -70,7 +70,7 @@ def main():
     
     # State tracking
     transit_lines = []
-    weather_lines = []
+    weather_data = {}
     outlook = ""
     
     # Schedule refreshes against wall-clock boundaries, not startup time.
@@ -90,13 +90,13 @@ def main():
                 print(f"  ✗ Transit fetch failed: {e}")
 
             try:
-                weather_lines, outlook = fetch_weather_data()
+                weather_data, outlook = fetch_weather_data()
             except Exception as e:
                 print(f"  ✗ Weather fetch failed: {e}")
 
             print(f"[{time.strftime('%H:%M:%S')}] Initial full render...")
             draw_weather_and_transit_lines(
-                epd, background, weather_lines, transit_lines, outlook
+                epd, background, weather_data, transit_lines, outlook
             )
             print("  ✓ Display initialized")
             print()
@@ -112,10 +112,10 @@ def main():
             if now >= next_weather_refresh:
                 print(f"[{time.strftime('%H:%M:%S')}] Updating weather, outlook, and transit...")
                 try:
-                    weather_lines, outlook = fetch_weather_data()
+                    weather_data, outlook = fetch_weather_data()
                     transit_lines = fetch_transit_data()
                     draw_weather_and_transit_lines(
-                        epd, background, weather_lines, transit_lines, outlook
+                        epd, background, weather_data, transit_lines, outlook
                     )
                     next_weather_refresh = next_hour_boundary(now)
                     next_transit_refresh = next_minute_boundary(now)

@@ -2,6 +2,7 @@ import betterepd7in5
 from PIL import Image, ImageDraw, ImageFont
 from time_util import current_date_time_string
 from pathlib import Path
+from weather_icons import draw_weather_icon
 
 WIDTH, HEIGHT = 800, 480
 MID_X = WIDTH / 2
@@ -28,6 +29,15 @@ GROUP_TIMES_GAP = 28
 GROUP_GAP = 20
 BULLET_SIZE_RATIO = 0.75
 TOP_TRANSIT_BUFFER = 44
+
+# Weather icon column sized independently from the transit bullet column (per design decision).
+WEATHER_ICON_COLUMN_WIDTH = 64
+WEATHER_ICON_TEXT_GAP = 16
+WEATHER_HERO_ICON_SIZE = 90
+WEATHER_DAILY_ICON_SIZE = 44
+WEATHER_HERO_GAP = 20
+WEATHER_DAILY_ROW_HEIGHT = 52
+WEATHER_DAILY_ROW_GAP = 10
 
 def init_display():
     return betterepd7in5.EPD(betterepd7in5.RaspberryPi())
@@ -105,6 +115,34 @@ def _draw_line_bullet(draw, cx, cy, label, diameter):
     font = _fit_bold_font(draw, label, diameter * 0.62)
     _draw_optically_centered_text(draw, cx, cy, label, font, fill=255)
 
+def _draw_weather_hero(draw, x, y, today, font_m):
+    line_h = font_m.size + 8
+    block_height = max(WEATHER_HERO_ICON_SIZE, line_h * 2)
+    center_x = x + WEATHER_ICON_COLUMN_WIDTH / 2
+    center_y = y + block_height / 2
+    draw_weather_icon(draw, center_x, center_y, WEATHER_HERO_ICON_SIZE, today["icon"])
+
+    text_x = x + WEATHER_ICON_COLUMN_WIDTH + WEATHER_ICON_TEXT_GAP
+    text_y = center_y - line_h
+    draw.text((text_x, text_y), f"{today['temp']}°F (feels {today['feels_like']}°F)", font=font_m, fill=0)
+    draw.text((text_x, text_y + line_h), f"H:{today['high']}°  L:{today['low']}°", font=font_m, fill=0)
+
+    return y + block_height
+
+def _draw_weather_forecast_row(draw, x, y, day, font_m):
+    row_height = WEATHER_DAILY_ROW_HEIGHT
+    center_x = x + WEATHER_ICON_COLUMN_WIDTH / 2
+    center_y = y + row_height / 2
+    draw_weather_icon(draw, center_x, center_y, WEATHER_DAILY_ICON_SIZE, day["icon"])
+
+    text_x = x + WEATHER_ICON_COLUMN_WIDTH + WEATHER_ICON_TEXT_GAP
+    label = f"{day['day']}   {day['high']}° / {day['low']}°"
+    bbox = draw.textbbox((0, 0), label, font=font_m)
+    text_y = center_y - (bbox[3] - bbox[1]) / 2 - bbox[1]
+    draw.text((text_x, text_y), label, font=font_m, fill=0)
+
+    return y + row_height + WEATHER_DAILY_ROW_GAP
+
 def _draw_transit_group(draw, x, y, group, font_m, line_h):
     times = group["times"] or ["No data"]
     block_height = len(times) * line_h
@@ -155,7 +193,7 @@ def _draw_right_header(draw, img, time_font, date_font):
     return top_y + (Image.open(MTA_LOGO).height if MTA_LOGO.exists() else 60) + TOP_TRANSIT_BUFFER
 
 # Draw the entire screen with a full refresh
-def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlook=""):
+def draw_weather_and_transit_lines(epd, img, weather_data, transit_lines, outlook=""):
     img.paste(255, (0, 0, WIDTH, HEIGHT))
     draw = ImageDraw.Draw(img)
 
@@ -170,13 +208,12 @@ def draw_weather_and_transit_lines(epd, img, weather_lines, transit_lines, outlo
     # Left: Weather
     left_pad = 16
     y = 16
-    for i, line in enumerate(weather_lines):
-        f = font_m  # Use same font size for all weather lines
-        draw.text((left_pad, y), line, font=f, fill=0)
-        y += (f.size + 4)
-        if y > HEIGHT - 80:  # Leave room for fact at bottom
-            break
-    
+    if weather_data:
+        y = _draw_weather_hero(draw, left_pad, y, weather_data["today"], font_m)
+        y += WEATHER_HERO_GAP
+        for day in weather_data["forecast"]:
+            y = _draw_weather_forecast_row(draw, left_pad, y, day, font_m)
+
     # Left: Weather outlook (at bottom left)
     header_y = HEIGHT - 135
     draw.text((left_pad, header_y), "Today's Outlook:", font=font_m, fill=0)
