@@ -36,6 +36,7 @@ WEATHER_HERO_TEXT_GAP = 28
 WEATHER_HERO_ICON_SIZE = 90
 WEATHER_HERO_GAP = 24
 WEATHER_OUTLOOK_MAX_LINES = 8
+WEATHER_OUTLOOK_FORECAST_GAP = 20
 WEATHER_FORECAST_BOTTOM_MARGIN = 10
 WEATHER_FORECAST_X_SHIFT = 12
 WEATHER_FORECAST_ICON_SIZE = 64
@@ -246,24 +247,26 @@ def draw_weather_and_transit_lines(epd, img, weather_data, transit_lines, outloo
         y = _draw_weather_hero(draw, left_pad, MID_X - left_pad, y, weather_data["today"], font_l)
         y += WEATHER_HERO_GAP
 
-        # Forecast row is anchored near the bottom (independent of outlook length), so the
-        # outlook gets to use whatever room is left between it and the hero above.
+        # Forecast row hugs the actual end of the outlook text (so short outlooks don't leave a
+        # big gap), but is clamped so a long outlook can never push it past this max position.
         forecast_height = (
             font_m.size + WEATHER_FORECAST_LABEL_GAP
             + WEATHER_FORECAST_ICON_SIZE + WEATHER_FORECAST_ICON_GAP
             + font_forecast_bold.size + WEATHER_FORECAST_HL_GAP
             + font_forecast_bold.size
         )
-        forecast_y = HEIGHT - forecast_height - WEATHER_FORECAST_BOTTOM_MARGIN
+        max_forecast_y = HEIGHT - forecast_height - WEATHER_FORECAST_BOTTOM_MARGIN
 
         # Outlook: no header, sits between the hero and the forecast row
         left_col_width = int(MID_X - left_pad * 2)
         wrapped_outlook = _wrap_text(outlook, font_s, left_col_width, max_lines=WEATHER_OUTLOOK_MAX_LINES)
         for line in wrapped_outlook:
-            if y + font_s.size > forecast_y - 10:
+            if y + font_s.size > max_forecast_y - WEATHER_OUTLOOK_FORECAST_GAP:
                 break
             draw.text((left_pad, y), line, font=font_s, fill=0)
             y += font_s.size + 4
+
+        forecast_y = min(y + WEATHER_OUTLOOK_FORECAST_GAP, max_forecast_y)
 
         _draw_weather_forecast_row(
             draw,
