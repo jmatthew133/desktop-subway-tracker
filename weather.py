@@ -25,6 +25,7 @@ def print_weather(forecast):
             "day": d["day"],
             "high": d["high"],
             "low": d["low"],
+            "precip_chance": d["precip_chance"],
             "desc": d["desc"],
             "icon": d["icon"],
         })
@@ -77,15 +78,17 @@ def get_weather():
     highs = daily.get("temperature_2m_max", [])[1:4]
     lows = daily.get("temperature_2m_min", [])[1:4]
     codes = daily.get("weather_code", [])[1:4]
+    precip_chances = daily.get("precipitation_probability_max", [])[1:4]
 
     forecast = []
-    for day, high, low, code in zip(days, highs, lows, codes):
+    for day, high, low, code, precip_chance in zip(days, highs, lows, codes, precip_chances):
         dt = datetime.fromisoformat(day)
         forecast.append({
             "day": dt.strftime("%a"),
             "high": round(high),
             "low": round(low),
             "code": code,
+            "precip_chance": round(precip_chance),
             "desc": WEATHER_CODES.get(code, "Unknown"),
             "icon": WEATHER_ICON_KEYS.get(code, "cloudy"),
         })
