@@ -35,11 +35,14 @@ WEATHER_ICON_COLUMN_WIDTH = 64
 WEATHER_HERO_TEXT_GAP = 28
 WEATHER_HERO_ICON_SIZE = 90
 WEATHER_HERO_GAP = 24
-WEATHER_OUTLOOK_GAP = 32
+WEATHER_OUTLOOK_MAX_LINES = 8
+WEATHER_FORECAST_BOTTOM_MARGIN = 10
+WEATHER_FORECAST_X_SHIFT = 12
 WEATHER_FORECAST_ICON_SIZE = 64
-WEATHER_FORECAST_LABEL_GAP = 12
-WEATHER_FORECAST_ICON_GAP = 10
-WEATHER_FORECAST_HL_GAP = 8
+WEATHER_FORECAST_LABEL_GAP = 16
+WEATHER_FORECAST_ICON_GAP = 14
+WEATHER_FORECAST_HL_GAP = 12
+WEATHER_FORECAST_BOLD_SIZE = 18
 
 def init_display():
     return betterepd7in5.EPD(betterepd7in5.RaspberryPi())
@@ -117,13 +120,18 @@ def _draw_line_bullet(draw, cx, cy, label, diameter):
     font = _fit_bold_font(draw, label, diameter * 0.62)
     _draw_optically_centered_text(draw, cx, cy, label, font, fill=255)
 
-def _draw_weather_hero(draw, x, y, today, font_l):
+def _draw_weather_hero(draw, x0, x1, y, today, font_l):
+    """Draw today's hero icon + temp/precip/high-low text, centered as a block within [x0, x1]."""
     line_h = font_l.size + 6
     lines = [
         f"{today['temp']}°F (feels {today['feels_like']}°F)",
-        f"Precip: {today['precip_chance']}%",
         f"H:{today['high']}°  L:{today['low']}°",
+        f"Rain: {today['precip_chance']}%",
     ]
+    text_width = max(draw.textbbox((0, 0), line, font=font_l)[2] for line in lines)
+    total_width = WEATHER_ICON_COLUMN_WIDTH + WEATHER_HERO_TEXT_GAP + text_width
+    x = x0 + max(0, (x1 - x0 - total_width) / 2)
+
     block_height = max(WEATHER_HERO_ICON_SIZE, len(lines) * line_h)
     center_x = x + WEATHER_ICON_COLUMN_WIDTH / 2
     center_y = y + block_height / 2
@@ -137,7 +145,7 @@ def _draw_weather_hero(draw, x, y, today, font_l):
 
     return y + block_height
 
-def _draw_weather_forecast_row(draw, x0, x1, y, forecast, font_m, font_s):
+def _draw_weather_forecast_row(draw, x0, x1, y, forecast, font_m, font_bold):
     """Draw the 3-day forecast as a horizontal row of columns: day, icon, high/low, precip."""
     col_width = (x1 - x0) / len(forecast)
     max_y = y
@@ -153,12 +161,12 @@ def _draw_weather_forecast_row(draw, x0, x1, y, forecast, font_m, font_s):
         cy += WEATHER_FORECAST_ICON_SIZE + WEATHER_FORECAST_ICON_GAP
 
         hl_label = f"{day['high']}°/{day['low']}°"
-        _draw_optically_centered_text(draw, cx, cy, hl_label, font_s, fill=0)
-        cy += font_s.size + WEATHER_FORECAST_HL_GAP
+        _draw_optically_centered_text(draw, cx, cy, hl_label, font_bold, fill=0)
+        cy += font_bold.size + WEATHER_FORECAST_HL_GAP
 
         precip_label = f"{day['precip_chance']}% rain"
-        _draw_optically_centered_text(draw, cx, cy, precip_label, font_s, fill=0)
-        cy += font_s.size
+        _draw_optically_centered_text(draw, cx, cy, precip_label, font_bold, fill=0)
+        cy += font_bold.size
 
         max_y = max(max_y, cy)
 
@@ -226,6 +234,7 @@ def draw_weather_and_transit_lines(epd, img, weather_data, transit_lines, outloo
     font_m = ImageFont.truetype(FONT_PATH, FONT_M)
     font_l = ImageFont.truetype(FONT_PATH, FONT_L)
     font_xl = ImageFont.truetype(FONT_PATH, FONT_XL)
+    font_forecast_bold = _load_bold_font(WEATHER_FORECAST_BOLD_SIZE)
 
     # Center divider
     draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
@@ -234,19 +243,36 @@ def draw_weather_and_transit_lines(epd, img, weather_data, transit_lines, outloo
     left_pad = 28
     y = 16
     if weather_data:
-        y = _draw_weather_hero(draw, left_pad, y, weather_data["today"], font_l)
+        y = _draw_weather_hero(draw, left_pad, MID_X - left_pad, y, weather_data["today"], font_l)
         y += WEATHER_HERO_GAP
 
-        # Outlook: no header, sits directly between hero and the 3-day forecast row
+        # Forecast row is anchored near the bottom (independent of outlook length), so the
+        # outlook gets to use whatever room is left between it and the hero above.
+        forecast_height = (
+            font_m.size + WEATHER_FORECAST_LABEL_GAP
+            + WEATHER_FORECAST_ICON_SIZE + WEATHER_FORECAST_ICON_GAP
+            + font_forecast_bold.size + WEATHER_FORECAST_HL_GAP
+            + font_forecast_bold.size
+        )
+        forecast_y = HEIGHT - forecast_height - WEATHER_FORECAST_BOTTOM_MARGIN
+
+        # Outlook: no header, sits between the hero and the forecast row
         left_col_width = int(MID_X - left_pad * 2)
-        wrapped_outlook = _wrap_text(outlook, font_s, left_col_width, max_lines=6)
+        wrapped_outlook = _wrap_text(outlook, font_s, left_col_width, max_lines=WEATHER_OUTLOOK_MAX_LINES)
         for line in wrapped_outlook:
+            if y + font_s.size > forecast_y - 10:
+                break
             draw.text((left_pad, y), line, font=font_s, fill=0)
             y += font_s.size + 4
-        y += WEATHER_OUTLOOK_GAP
 
-        y = _draw_weather_forecast_row(
-            draw, left_pad, MID_X - left_pad, y, weather_data["forecast"], font_m, font_s
+        _draw_weather_forecast_row(
+            draw,
+            left_pad - WEATHER_FORECAST_X_SHIFT,
+            MID_X - left_pad - WEATHER_FORECAST_X_SHIFT,
+            forecast_y,
+            weather_data["forecast"],
+            font_m,
+            font_forecast_bold,
         )
 
     # Right: Timestamp, logo, and transit
