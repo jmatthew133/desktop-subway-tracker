@@ -36,7 +36,7 @@ WEATHER_HERO_TEXT_GAP = 28
 WEATHER_HERO_ICON_SIZE = 90
 WEATHER_HERO_GAP = 24
 WEATHER_OUTLOOK_MAX_LINES = 8
-WEATHER_OUTLOOK_FORECAST_GAP = 20
+WEATHER_OUTLOOK_FORECAST_GAP = 28
 WEATHER_FORECAST_BOTTOM_MARGIN = 10
 WEATHER_FORECAST_X_SHIFT = 12
 WEATHER_FORECAST_ICON_SIZE = 64
@@ -266,7 +266,7 @@ def draw_weather_and_transit_lines(epd, img, weather_data, transit_lines, outloo
             draw.text((left_pad, y), line, font=font_s, fill=0)
             y += font_s.size + 4
 
-        forecast_y = min(y + WEATHER_OUTLOOK_FORECAST_GAP, max_forecast_y)
+        forecast_y = min(y + max(WEATHER_OUTLOOK_FORECAST_GAP, (max_forecast_y - y) / 2), max_forecast_y)
 
         _draw_weather_forecast_row(
             draw,
