@@ -40,10 +40,11 @@ WEATHER_OUTLOOK_FORECAST_GAP = 28
 WEATHER_FORECAST_BOTTOM_MARGIN = 10
 WEATHER_FORECAST_X_SHIFT = 12
 WEATHER_FORECAST_ICON_SIZE = 64
-WEATHER_FORECAST_LABEL_GAP = 16
+WEATHER_FORECAST_LABEL_GAP = 10
 WEATHER_FORECAST_ICON_GAP = 14
 WEATHER_FORECAST_HL_GAP = 12
 WEATHER_FORECAST_BOLD_SIZE = 18
+WEATHER_FORECAST_DAY_SIZE = 24
 
 def init_display():
     return betterepd7in5.EPD(betterepd7in5.RaspberryPi())
@@ -146,7 +147,7 @@ def _draw_weather_hero(draw, x0, x1, y, today, font_l):
 
     return y + block_height
 
-def _draw_weather_forecast_row(draw, x0, x1, y, forecast, font_m, font_bold):
+def _draw_weather_forecast_row(draw, x0, x1, y, forecast, font_day, font_bold):
     """Draw the 3-day forecast as a horizontal row of columns: day, icon, high/low, precip."""
     col_width = (x1 - x0) / len(forecast)
     max_y = y
@@ -154,8 +155,8 @@ def _draw_weather_forecast_row(draw, x0, x1, y, forecast, font_m, font_bold):
         cx = x0 + col_width * i + col_width / 2
         cy = y
 
-        _draw_optically_centered_text(draw, cx, cy, day["day"], font_m, fill=0)
-        cy += font_m.size + WEATHER_FORECAST_LABEL_GAP
+        _draw_optically_centered_text(draw, cx, cy, day["day"], font_day, fill=0)
+        cy += font_day.size + WEATHER_FORECAST_LABEL_GAP
 
         icon_cy = cy + WEATHER_FORECAST_ICON_SIZE / 2
         draw_weather_icon(draw, cx, icon_cy, WEATHER_FORECAST_ICON_SIZE, day["icon"])
@@ -236,6 +237,7 @@ def draw_weather_and_transit_lines(epd, img, weather_data, transit_lines, outloo
     font_l = ImageFont.truetype(FONT_PATH, FONT_L)
     font_xl = ImageFont.truetype(FONT_PATH, FONT_XL)
     font_forecast_bold = _load_bold_font(WEATHER_FORECAST_BOLD_SIZE)
+    font_forecast_day = ImageFont.truetype(FONT_PATH, WEATHER_FORECAST_DAY_SIZE)
 
     # Center divider
     draw.line([(MID_X, 0), (MID_X, HEIGHT)], fill=0, width=1)
@@ -250,7 +252,7 @@ def draw_weather_and_transit_lines(epd, img, weather_data, transit_lines, outloo
         # Forecast row hugs the actual end of the outlook text (so short outlooks don't leave a
         # big gap), but is clamped so a long outlook can never push it past this max position.
         forecast_height = (
-            font_m.size + WEATHER_FORECAST_LABEL_GAP
+            font_forecast_day.size + WEATHER_FORECAST_LABEL_GAP
             + WEATHER_FORECAST_ICON_SIZE + WEATHER_FORECAST_ICON_GAP
             + font_forecast_bold.size + WEATHER_FORECAST_HL_GAP
             + font_forecast_bold.size
@@ -267,6 +269,7 @@ def draw_weather_and_transit_lines(epd, img, weather_data, transit_lines, outloo
             y += font_s.size + 4
 
         forecast_y = min(y + max(WEATHER_OUTLOOK_FORECAST_GAP, (max_forecast_y - y) / 2), max_forecast_y)
+        forecast_y = min(forecast_y + (font_s.size + 4), max_forecast_y)
 
         _draw_weather_forecast_row(
             draw,
@@ -274,7 +277,7 @@ def draw_weather_and_transit_lines(epd, img, weather_data, transit_lines, outloo
             MID_X - left_pad - WEATHER_FORECAST_X_SHIFT,
             forecast_y,
             weather_data["forecast"],
-            font_m,
+            font_forecast_day,
             font_forecast_bold,
         )
 
