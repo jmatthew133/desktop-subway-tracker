@@ -4,7 +4,7 @@ from groq import Groq
 from local_config import GROQ_API_KEY
 
 
-MODEL = "groq/compound-mini"
+MODEL = "groq/compound"
 MAX_WORDS = 35
 
 
