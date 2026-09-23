@@ -103,7 +103,8 @@ def get_outlook(weather_data):
         response = client.chat.completions.create(
             model=MODEL,
             temperature=0.4,
-            max_completion_tokens=200,
+            max_completion_tokens=1024,
+            reasoning_effort="low",
             messages=messages,
         )
         outlook = (response.choices[0].message.content or "").strip()
